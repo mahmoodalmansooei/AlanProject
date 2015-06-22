@@ -24,39 +24,38 @@ def error(x):
     :return: The correction needed to match the target
     :rtype: float
     """
-    return np.sign(x[1] - x[0]) * (x[0] - x[1]) ** 2
+    return np.sign(x[1] - x[0]) * ((x[0] - x[1]) ** 2)
 
 
 with model:
     # Time constant for synapses (found experimentally)
     tau = 0.95
-    # Population radii (found experimentally)
+    # Population radii           (found experimentally)
     radius = 1.2
     # Node to input the initial orientation of the arm TODO
-    initial_angle = nengo.Node(0.0)
+    initial_angle = nengo.Node(output=0.0)
     # The ensemble representing the current orientation
-    current = nengo.Ensemble(200, 1, radius=radius)
-
-    nengo.Connection(initial_angle, current, transform=[0.01], synapse=tau)
+    current = nengo.Ensemble(n_neurons=200, dimensions=1, radius=radius)
+    nengo.Connection(pre=initial_angle, post=current, transform=[[tau]], synapse=tau)
     # Node to input the target angle (orientation)
-    object_angle = nengo.Node(0.5)
+    object_angle = nengo.Node(output=0.5)
     # The ensemble representing the target's orientation
-    target = nengo.Ensemble(200, 1, radius=radius)
-
-    nengo.Connection(object_angle, target)
+    target = nengo.Ensemble(n_neurons=200, dimensions=1, radius=radius)
+    nengo.Connection(pre=object_angle, post=target)
     # The ensemble that combines the two signals (target and current
     # orientation)
-    controller = nengo.Ensemble(400, 2, radius=radius)
+    controller = nengo.Ensemble(n_neurons=500, dimensions=2, radius=radius)
 
     # Connections between the current --> controller and target --> controller
-    nengo.Connection(current, controller[0])
-    nengo.Connection(target, controller[1])
+    nengo.Connection(pre=current, post=controller[0])
+    nengo.Connection(pre=target,  post=controller[1])
 
     # Ensemble that approximates the error function
-    _error = nengo.Ensemble(200, 1, radius=radius)
+    _error = nengo.Ensemble(n_neurons=300, dimensions=1, radius=radius,
+                            label="Error")
 
-    nengo.Connection(controller, _error, function=error)
+    nengo.Connection(pre=controller, post=_error, function=error)
 
     # Connections that feedback into current
-    nengo.Connection(_error, current, transform=[[tau]], synapse=tau)
-    nengo.Connection(current, current, transform=[[1]], synapse=tau)
+    nengo.Connection(pre=_error,  post=current, transform=[[tau]], synapse=tau)
+    nengo.Connection(pre=current, post=current, transform=[[1]],   synapse=tau)
