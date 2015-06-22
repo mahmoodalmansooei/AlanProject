@@ -4,3 +4,5 @@
 #Nengo GUI configuration files
 *.cfg
 
+#Old files with unfinished increments
+.throwaway
