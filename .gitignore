@@ -1,0 +1,6 @@
+# IDE Specific
+.idea
+
+#Nengo GUI configuration files
+*.cfg
+
