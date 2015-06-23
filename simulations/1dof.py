@@ -57,22 +57,8 @@ with model:
     _error = nengo.Ensemble(n_neurons=300, dimensions=1, radius=radius,
                             label="Error")
 
-    _sensor = nengo.Ensemble(n_neurons=200, dimensions=1, radius=radius,
-                             label="Sensor")
-    _sensor_input = nengo.Node(output=0.0, label="Sensor input")
-    nengo.Connection(pre=_sensor_input, post=_sensor)
-
-    nengo.Connection(pre=_sensor, post=_error)
-
     nengo.Connection(pre=controller, post=_error, function=error)
 
-    # Connections that feedback into current through the combo proxy
-    # this allows for more control
-    combo = nengo.Ensemble(n_neurons=600, dimensions=1, radius=radius,
-                           label="Combo ensemble")
-    _move = nengo.Node(output=piecewise({0: 1, 2: 0}), label="!move")
-    nengo.Connection(pre=_move, post=combo.neurons,
-                     transform=[[-2.5]] * combo.n_neurons)
-    nengo.Connection(pre=_error, post=combo, transform=[[tau]], synapse=tau)
-    nengo.Connection(pre=current, post=combo, transform=[[1]], synapse=tau)
-    nengo.Connection(pre=combo, post=current)
+    # Connections that feedback into current
+    nengo.Connection(pre=_error,  post=current, transform=[[tau]], synapse=tau)
+    nengo.Connection(pre=current, post=current, transform=[[1]],   synapse=tau)
