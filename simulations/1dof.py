@@ -1,4 +1,4 @@
-__author__ = 'Petrut'
+__author__ = 'Petrut Bogdan'
 
 import nengo
 import numpy as np
@@ -9,11 +9,10 @@ a random location
 
 The point around which the "arm" rotates is the origin of the system (0,0)
 
-First quadrant only
+
 """
 
-model = nengo.Network("1dof -- square error(v4)")
-
+model = nengo.Network("1DOF Arm")
 
 def error(x):
     """
@@ -32,11 +31,13 @@ with model:
     tau = 0.95
     # Population radii           (found experimentally)
     radius = 1.2
-    # Node to input the initial orientation of the arm TODO
+    # Node to input the initial orientation of the arm
+    # Arm needs to be initialized to its initial position (reference position)
     initial_angle = nengo.Node(output=0.0)
     # The ensemble representing the current orientation
     current = nengo.Ensemble(n_neurons=200, dimensions=1, radius=radius)
-    nengo.Connection(pre=initial_angle, post=current, transform=[[tau]], synapse=tau)
+    nengo.Connection(pre=initial_angle, post=current, transform=[[tau]],
+                     synapse=tau)
     # Node to input the target angle (orientation)
     object_angle = nengo.Node(output=0.5)
     # The ensemble representing the target's orientation
@@ -54,6 +55,12 @@ with model:
     _error = nengo.Ensemble(n_neurons=300, dimensions=1, radius=radius,
                             label="Error")
 
+    _sensor = nengo.Ensemble(n_neurons=200, dimensions=1, radius=radius,
+                             label="Sensor")
+    _sensor_input = nengo.Node(output=0.0, label="Sensor input")
+    nengo.Connection(pre=_sensor_input, post=_sensor)
+
+    nengo.Connection(pre=_sensor, post=_error)
     nengo.Connection(pre=controller, post=_error, function=error)
 
     # Connections that feedback into current
