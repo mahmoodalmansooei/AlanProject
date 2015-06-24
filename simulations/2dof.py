@@ -43,18 +43,25 @@ with model:
     tau = 0.9
     # Node to input the initial orientation of the arm
     # Arm needs to be initialized to its initial position (reference position)
-    initial_position = nengo.Node(output=piecewise({0: [1.0, 1.0], 1: [0, 0]}))
+    initial_x = nengo.Node(output=piecewise({0: 1, 1: 0}))
+    initial_y = nengo.Node(output=piecewise({0: 0.4, 1: 0}))
     # The ensemble representing the current orientation
     current_position = nengo.Ensemble(n_neurons=200, dimensions=2,
                                       radius=radius)
-    nengo.Connection(pre=initial_position, post=current_position)
+    # nengo.Connection(pre=initial_position, post=current_position)
+    nengo.Connection(pre=initial_x, post=current_position[0])
+    nengo.Connection(pre=initial_y, post=current_position[1])
+
     # Node to input the target position
-    target_position = nengo.Node(output=movement_test)
+    target_position_x = nengo.Node(piecewise({0: -1, 5: 0, 10: 1, 15: -1,
+                                              20: .3, 25: -0.7}))
+    target_position_y = nengo.Node(piecewise({0: -1, 5: 0, 10: 1, 15: 1,
+                                              20: -0.3, 25: 0}))
     # The ensemble that combines the two signals (target and current
     # positions)
     controller = nengo.Ensemble(n_neurons=600, dimensions=4, radius=radius)
-    nengo.Connection(pre=target_position[0],  post=controller[0])
-    nengo.Connection(pre=target_position[1],  post=controller[1])
+    nengo.Connection(pre=target_position_x, post=controller[0])
+    nengo.Connection(pre=target_position_y, post=controller[1])
     nengo.Connection(pre=current_position[0], post=controller[2])
     nengo.Connection(pre=current_position[1], post=controller[3])
     # Ensemble that approximates the error function
