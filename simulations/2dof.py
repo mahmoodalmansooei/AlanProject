@@ -78,5 +78,7 @@ with model:
     x_motor = nengo.Ensemble(n_neurons=100, dimensions=1, radius=radius)
     y_motor = nengo.Ensemble(n_neurons=100, dimensions=1, radius=radius)
 
-    nengo.Connection(pre=_error[0], post=x_motor, transform=[[tau]])
-    nengo.Connection(pre=_error[1], post=y_motor, transform=[[tau]])
+    nengo.Connection(pre=_error[0], post=x_motor, transform=[[tau]],
+                     synapse=tau)
+    nengo.Connection(pre=_error[1], post=y_motor, transform=[[tau]],
+                     synapse=tau)

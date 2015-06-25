@@ -27,7 +27,7 @@ def error(x):
     """
     return np.sign(x[1] - x[0]) * ((x[0] - x[1]) ** 2)
 
-
+# Part concerned with 'hitting' the target
 with model:
     # Time constant for synapses (found experimentally)
     tau = 0.95
@@ -62,3 +62,7 @@ with model:
     # Connections that feedback into current
     nengo.Connection(pre=_error,  post=current, transform=[[tau]], synapse=tau)
     nengo.Connection(pre=current, post=current, transform=[[1]],   synapse=tau)
+
+    # Simulated motor neurons
+    motor = nengo.Ensemble(n_neurons=100, dimensions=1, radius=radius)
+    nengo.Connection(pre=_error, post=motor, transform=[[tau]],synapse=tau)
