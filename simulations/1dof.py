@@ -15,6 +15,8 @@ The point around which the "arm" rotates is the origin of the system (0,0)
 
 model = nengo.Network("1DOF Arm")
 
+test_data = {0: 0.5, 8: -0.2, 16: 1.0, 24: -1.0, 32: 0.0}
+
 
 def error(x):
     """
@@ -27,7 +29,7 @@ def error(x):
     """
     return np.sign(x[1] - x[0]) * ((x[0] - x[1]) ** 2)
 
-# Part concerned with 'hitting' the target
+# Part concerned with reaching the target
 with model:
     # Time constant for synapses (found experimentally)
     tau = 0.95
@@ -41,7 +43,7 @@ with model:
     nengo.Connection(pre=initial_angle, post=current, transform=[[tau]],
                      synapse=tau)
     # Node to input the target angle (orientation)
-    object_angle = nengo.Node(output=0.5)
+    object_angle = nengo.Node(output=piecewise(test_data))
     # The ensemble representing the target's orientation
     target = nengo.Ensemble(n_neurons=200, dimensions=1, radius=radius)
     nengo.Connection(pre=object_angle, post=target)
@@ -60,9 +62,9 @@ with model:
     nengo.Connection(pre=controller, post=_error, function=error)
 
     # Connections that feedback into current
-    nengo.Connection(pre=_error,  post=current, transform=[[tau]], synapse=tau)
-    nengo.Connection(pre=current, post=current, transform=[[1]],   synapse=tau)
+    nengo.Connection(pre=_error, post=current, transform=[[tau]], synapse=tau)
+    nengo.Connection(pre=current, post=current, transform=[[1]], synapse=tau)
 
     # Simulated motor neurons
-    motor = nengo.Ensemble(n_neurons=100, dimensions=1, radius=radius)
-    nengo.Connection(pre=_error, post=motor, transform=[[tau]],synapse=tau)
+    motor = nengo.Ensemble(n_neurons=100, dimensions=1, radius=1)
+    nengo.Connection(pre=_error, post=motor, synapse=tau / 2.0)

@@ -98,14 +98,14 @@ with model:
     nengo.Connection(pre=pure_fabrication, post=finger_inhibitor.neurons,
                      transform=[[-3.0]] * finger_inhibitor.n_neurons)
     nengo.Connection(pre=finger_inhibitor, post=finger_target,
-                     transform=[[1.4]], synapse=tau)
+                     transform=[[1.4]])
     # Connections between the current --> controller and target --> controller
     nengo.Connection(pre=finger, post=finger_control[0])
     nengo.Connection(pre=finger_up, post=finger_inhibitor)
     nengo.Connection(pre=finger_target, post=finger_control[1])
 
     # Connections that feedback into finger
-    nengo.Connection(pre=finger_error, post=finger, transform=[[tau]],
+    nengo.Connection(pre=finger_error, post=finger,
                      synapse=tau)
     nengo.Connection(pre=finger, post=finger, transform=[[1]], synapse=tau)
 
