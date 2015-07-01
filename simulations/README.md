@@ -10,6 +10,7 @@ Simulations needed to implement the final robot control system (in increasing or
 - [x] 2DOF Arm (can be generalized to eye movement)
 - [x] 2DOF Arm (with finger movement) 
 - [x] 3DOF Arm (with finger movement)(can be generalized to head + eye movement)
-- [ ] Action selection based on input coming from Raspberry PI
-- [ ] Action execution based on previously selected action
-- [ ] Computing target position (?)
+- [x] Action selection based on input (from Raspberry PI)
+- [x] Action execution based on previously selected action
+- [x] Computing rotating target position
+- [ ] Computing joint positions
