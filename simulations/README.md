@@ -13,4 +13,4 @@ Simulations needed to implement the final robot control system (in increasing or
 - [x] Action selection based on input (from Raspberry PI)
 - [x] Action execution based on previously selected action
 - [x] Computing rotating target position
-- [ ] Computing joint positions
+- [x] Computing joint positions
