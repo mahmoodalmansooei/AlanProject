@@ -6,3 +6,6 @@
 
 #Old files with unfinished increments
 .throwaway
+
+#Compiled files shouldn't be on git
+*.pyc
