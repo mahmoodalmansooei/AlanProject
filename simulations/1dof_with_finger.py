@@ -13,7 +13,7 @@ The point around which the "arm" rotates is the origin of the system (0,0)
 
 """
 
-model = nengo.Network("1DOF Arm")
+model = nengo.Network("2DOF (Forearm + Finger)")
 
 # test_data = {0: 0.5, 8: -0.2, 16: 1.0, 24: -1.0, 32: 0.0}
 

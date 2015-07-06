@@ -6,7 +6,7 @@ import numpy as np
 
 model = nengo.Network("MM Object Test")
 A = np.asarray([[1]])
-B = np.asarray([[1, 2, 3]])
+B = np.asarray([[-1, 1, -1]])
 with model:
     mm = MatrixMultiplication(50, A, B)
 

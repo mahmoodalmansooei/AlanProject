@@ -8,7 +8,7 @@ model = nengo.Network("Differentiator")
 with model:
     radius = 3.0
     tau = 0.1
-    in_value = nengo.Node(output=np.sin)
+    in_value = nengo.Node(output=lambda t: np.abs(np.sin(t)))
 
     differentiator = nengo.Ensemble(n_neurons=400, dimensions=2, radius=radius)
 
@@ -23,3 +23,4 @@ with model:
     integrator = nengo.Ensemble(n_neurons=400, dimensions=1)
     nengo.Connection(integrator, integrator, transform=[[1]], synapse=tau)
     nengo.Connection(output, integrator, transform=[[tau]], synapse=tau)
+

@@ -21,7 +21,7 @@ with model:
     A = nengo.networks.EnsembleArray(N, Amat.size, radius=radius)
     B = nengo.networks.EnsembleArray(N, Bmat.size, radius=radius)
 
-    target_angle = nengo.Node(output=.45)
+    target_angle = nengo.Node(output=.45)  # Angle is in radians by default
     # connect inputs to them so we can set their value
     input_lips_location = nengo.Node(output=lambda t: [0, 1])
     nengo.Connection(input_lips_location, A.input)
@@ -30,8 +30,8 @@ with model:
     nengo.Connection(target_angle, B.input[2], function=np.sin)
     nengo.Connection(target_angle, B.input[3], function=np.cos)
 
-
 from nengo.dists import Choice
+
 with model:
     # The C matrix is composed of populations that each contain
     # one element of A and one element of B.
@@ -42,7 +42,8 @@ with model:
                                      n_ensembles=Amat.size * Bmat.shape[1],
                                      ens_dimensions=2,
                                      radius=1.5 * radius,
-                                     encoders=Choice([[1, 1], [-1, 1], [1, -1], [-1, -1]]))
+                                     encoders=Choice(
+                                         [[1, 1], [-1, 1], [1, -1], [-1, -1]]))
 
 transformA = np.zeros((C.dimensions, Amat.size))
 transformB = np.zeros((C.dimensions, Bmat.size))
@@ -63,12 +64,12 @@ with model:
     nengo.Connection(A.output, C.input, transform=transformA)
     nengo.Connection(B.output, C.input, transform=transformB)
 
-
 with model:
     # Now compute the products and do the appropriate summing
     D = nengo.networks.EnsembleArray(N,
                                      n_ensembles=Amat.shape[0] * Bmat.shape[1],
                                      radius=radius)
+
 
 def product(x):
     return x[0] * x[1]
@@ -83,6 +84,7 @@ print(transformC)
 
 with model:
     prod = C.add_output("product", product)
-
+    print prod.size_in
+    print prod.size_out
     nengo.Connection(prod, D.input, transform=transformC)
     D_probe = nengo.Probe(D.output, sample_every=0.01, synapse=0.01)

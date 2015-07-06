@@ -1,6 +1,7 @@
 __author__ = 'Petrut Bogdan'
 
 import nengo
+import numpy as np
 
 l = 0.25
 h = 0.2
@@ -15,7 +16,11 @@ gamma = 0.1
 
 b = 1.
 
-model = nengo.Network("Computing positions")
+model = nengo.Network("Computing shoulder position")
 
+shoulder_mat = np.asarray([[l],[0],[-h],[0]])
 with model:
-    pass
+    shoulder = nengo.Node(output=shoulder_mat.ravel())
+    S = nengo.networks.EnsembleArray(50, shoulder_mat.size, radius=1)
+
+    nengo.Connection(shoulder, S.input)

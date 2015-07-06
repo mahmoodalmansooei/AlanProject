@@ -20,7 +20,7 @@ h = 0.2
 upper_length = 0.3
 lower_length = 0.35
 
-#
+# Population radii should be computed based on the lengths involved
 radius = l + h + upper_length + lower_length
 
 alpha = 1.
