@@ -141,23 +141,23 @@ for i in range(elbow_position_mat.shape[0]):
 with model:
     nengo.Connection(E.output, elbow_combo.input, transform=transformElbow)
     nengo.Connection(D.output, elbow_combo.input, transform=transformRotation)
-    elbow_in_world_space = nengo.networks.EnsembleArray(
+    elbow_in_upper_arm_space = nengo.networks.EnsembleArray(
         N, n_ensembles=elbow_position_mat.shape[0] * rotation_mat.shape[1],
         radius=radius)
 
-transformElbow2 = np.zeros((elbow_in_world_space.dimensions, rotation_mat.size))
+transformElbow2 = np.zeros((elbow_in_upper_arm_space.dimensions, rotation_mat.size))
 for i in range(rotation_mat.size):
     transformElbow2[i // rotation_mat.shape[0]][i] = 1
 
 with model: # TODO Check that this outputs correct values
     prod2 = elbow_combo.add_output("product", product)
-    nengo.Connection(prod2, elbow_in_world_space.input, transform=transformElbow2)
+    nengo.Connection(prod2, elbow_in_upper_arm_space.input, transform=transformElbow2)
 
 
 # World space position computation
 
 with model:
-    adder = nengo.networks.EnsembleArray(N, n_ensembles=3, radius=2 * radius)
+    elbow_in_world_space = nengo.networks.EnsembleArray(N, n_ensembles=3, radius=2 * radius)
 
-    nengo.Connection(elbow_in_world_space.output, adder.input)
-    nengo.Connection(S.output, adder.input)
+    nengo.Connection(elbow_in_upper_arm_space.output, elbow_in_world_space.input)
+    nengo.Connection(S.output, elbow_in_world_space.input)
