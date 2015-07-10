@@ -5,4 +5,6 @@ These classes inherit from nengo.Network.
 
 - [x] Generic matrix multiplication
 - [x] Vector difference
-- [ ] Cross product of two vectors
+- [x] Cross product of two vectors
+
+All of these utilities suffer from being very sensitive to radius values.
