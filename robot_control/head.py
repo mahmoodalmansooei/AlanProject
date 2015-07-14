@@ -69,8 +69,6 @@ class Head(nengo.Network):
         """
         # TODO Connect external error to motor/sensor (they must decay
         # TODO realistically if not updated)
-
-        # TODO Add control signals
         super(Head, self).__init__(label, seed, add_to_container)
         # region Variable assignment
         self.n_neurons = n_neurons
@@ -92,6 +90,7 @@ class Head(nengo.Network):
             self.lips_position = nengo.Node(size_in=3)
             self.head_motor = nengo.Node(size_in=1)
             self.eye_motor = nengo.Node(size_in=2)
+            self.done = nengo.Node(size_in=1)
             # endregion
             # region control
             self.enable = nengo.Node(size_in=1)
@@ -131,10 +130,6 @@ class Head(nengo.Network):
                              synapse=self.tau)
             nengo.Connection(pre=self.current_head, post=self.current_head,
                              transform=[[1]], synapse=self.tau)
-
-            # Simulated motor neurons
-            nengo.Connection(pre=self.head_error, post=self.head_motor,
-                             synapse=self.tau * 2.0)
             # endregion
             # region Eye movement -- eyes snap on target
             self.eye_error = nengo.Ensemble(n_neurons=self.n_neurons,
@@ -175,10 +170,6 @@ class Head(nengo.Network):
             # Current eye position integrator
             nengo.Connection(self.current_eye, self.current_eye,
                              synapse=self.tau)
-            # Simulated eye motors
-
-            nengo.Connection(self.eye_error, self.eye_motor,
-                             synapse=self.tau * 2.)
             # endregion
             # region Compute the final position of the lips
             self.rotation_transformation = MatrixMultiplication(
@@ -216,4 +207,41 @@ class Head(nengo.Network):
             # This vector will be used when trying to shush the crowd
             nengo.Connection(self.rotation_transformation.output,
                              self.lips_position)
+            # endregion
+            # region Motor control
+
+            # Head motor
+            self.head_motor_control = nengo.Ensemble(
+                n_neurons=self.n_neurons, dimensions=1, radius=1)
+            nengo.Connection(self.head_error, self.head_motor_control,
+                             transform=[[1. / self.angle_radius]],
+                             synapse=self.tau)
+            nengo.Connection(self.head_motor_control, self.head_motor)
+
+            # Eye motors
+            self.eye_motor_control = nengo.Ensemble(
+                n_neurons=2 * self.n_neurons, dimensions=2, radius=1)
+
+            nengo.Connection(
+                self.eye_error, self.eye_motor_control,
+                transform=[[1. / self.angle_radius, 0],
+                           [0, 1. / self.angle_radius]],
+                synapse=self.tau)
+
+            nengo.Connection(self.eye_motor_control, self.eye_motor)
+
+            # endregion
+            # region Inhibitory gating which enables or disables the module
+            nengo.Connection(
+                self.enable, self.head_motor_control.neurons,
+                transform=[[-2.5]] * self.head_motor_control.n_neurons)
+            nengo.Connection(
+                self.enable, self.eye_motor_control.neurons,
+                transform=[[-2.5]] * self.eye_motor_control.n_neurons)
+            nengo.Connection(
+                self.enable, self.eye_controller.neurons,
+                transform=[[-2.5]] * self.eye_controller.n_neurons)
+            nengo.Connection(
+                self.enable, self.head_controller.neurons,
+                transform=[[-2.5]] * self.head_controller.n_neurons)
             # endregion
