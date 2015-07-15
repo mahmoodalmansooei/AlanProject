@@ -20,9 +20,9 @@ def h_error(x):
 def e_error(x):
     """
     Squared-error function. Also gives the required direction of movement
-    :param x: A vector consisting of the target position [0, 1] and the current
-    position [2, 3]
-    :type x: float[4]
+    :param x: A vector consisting of the target position [0, 1], the current
+    position [2, 3] and the current head position
+    :type x: float[5]
     :return: The correction needed to match the target
     :rtype: float
     """
@@ -52,21 +52,39 @@ class Head(nengo.Network):
 
         ========================================================================
 
-        :param lips_position_offset:
-        :type lips_position_offset:
-        :param n_neurons:
-        :type n_neurons:
-        :param tau:
-        :type tau:
-        :param label:
-        :type label:
-        :param seed:
-        :type seed:
-        :param add_to_container:
-        :type add_to_container:
-        :return: None
-        :rtype:
+        :param lips_position_offset: The position of the lips relative to the
+        origin of the system (center of the head)
+        :type lips_position_offset:numpy.ndarray
+        :param n_neurons:The standard number of neurons used in each ensemble
+        or ensemble array (some require a multiple of that)
+        :type n_neurons:int
+        :param length_radius:The radius of ensembles when computing lengths
+        :type length_radius:float
+        :param angle_radius:The radius of ensembles when computing angles
+        :type angle_radius:float
+        :param tau:Post-synaptic time constant (PSTC) to use for filtering.
+        :type tau:float
+        :param head_sensitivity:Reaction time constant for head rotation
+        :type head_sensitivity:float
+        :param eye_x_sensitivity:Reaction time constant for horizontal eye
+        movement
+        :type eye_x_sensitivity:float
+        :param eye_y_sensitivity:Reaction time constant for vertical eye
+        movement
+        :type eye_y_sensitivity:float
+        :param label:A descriptive label for the network
+        :type label:string
+        :param seed:Random number seed that will be fed to the random number
+        generator. Setting this seed makes the creation of the model a
+        deterministic process; however, each new ensemble in the network
+        advances the random number generator, so if the network creation
+        code changes, the entire model changes.
+        :type seed:int
+        :param add_to_container:Determines if this Network will be added to
+        the current container. Defaults to true iff currently with a Network.
+        :type add_to_container:bool
         """
+
         # TODO Connect external error to motor/sensor (they must decay
         # TODO realistically if not updated)
         super(Head, self).__init__(label, seed, add_to_container)
@@ -131,7 +149,7 @@ class Head(nengo.Network):
             nengo.Connection(pre=self.current_head, post=self.current_head,
                              transform=[[1]], synapse=self.tau)
             # endregion
-            # region Eye movement -- eyes snap on target
+            # region Eye movement
             self.eye_error = nengo.Ensemble(n_neurons=self.n_neurons,
                                             dimensions=2,
                                             radius=self.angle_radius,
