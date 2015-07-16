@@ -3,6 +3,7 @@ __author__ = 'Petrut Bogdan'
 import nengo
 import numpy as np
 from robot_utils.matrix_multiplication import MatrixMultiplication
+import warnings
 
 
 def h_error(x):
@@ -28,7 +29,7 @@ def e_error(x):
     """
     adjusted_target = x[0] - x[4]
     return np.sign(adjusted_target - x[2]) * ((adjusted_target - x[2]) ** 2), \
-        np.sign(x[1] - x[3]) * ((x[1] - x[3]) ** 2)
+           np.sign(x[1] - x[3]) * ((x[1] - x[3]) ** 2)
 
 
 class Head(nengo.Network):
@@ -97,6 +98,15 @@ class Head(nengo.Network):
         self.head_sensitivity = head_sensitivity
         self.eye_x_sensitivity = eye_x_sensitivity
         self.eye_y_sensitivity = eye_y_sensitivity
+        # endregion
+        # region Type checking and casting; bounds checking
+        if type(lips_position_offset) != np.ndarray:
+            self.lips_position_offset = np.asarray(lips_position_offset)
+        if not all(-self.length_radius <= x <= self.length_radius for x in
+                   self.lips_position_offset):
+            warnings.warn(
+                "Lip position vector seems to contain values that cannot be "
+                "represented because of the currently selected length_radius")
         # endregion
         with self:
             # region input
