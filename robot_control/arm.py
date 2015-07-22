@@ -6,17 +6,17 @@ import nengo
 import numpy as np
 import warnings
 
-_position_vector = np.zeros((3, 1))
 
+# TODO Consider error function using the difference of the slope of the
+# target and current
 
-def _product(x):
-    return x[0] * x[1]
+def _error(x):
+    target_x, target_y, current_x, current_y = x
+    return (target_x - current_x) ** 2, (target_y - current_y) ** 2
 
-
-# def _error(x):
-#     return (sinx - max_dir[0])**2 + (cosx - max_dir[1])**2
 
 _rotation_mat = np.asarray(np.eye(3))
+_position_vector = np.ones((3, 1))
 
 
 class Arm(nengo.Network):
@@ -24,7 +24,6 @@ class Arm(nengo.Network):
                  n_neurons=100, length_radius=1.2,
                  angle_radius=1.6, tau=0.3, shoulder_sensitivity=1.3,
                  elbow_sensitivity=2.0, finger_sensitivity=2.0,
-                 idle_shoulder=-np.pi / 2,
                  label=None, seed=None,
                  add_to_container=None):
         """
@@ -103,8 +102,6 @@ class Arm(nengo.Network):
         self.elbow_sensitivity = elbow_sensitivity
         self.finger_sensitivity = finger_sensitivity
 
-        self.idle_shoulder = idle_shoulder
-
         self.shoulder_position = shoulder_position
         self.elbow_position = elbow_position
         self.hand_position = hand_position
@@ -169,8 +166,6 @@ class Arm(nengo.Network):
                                     label="Hand position")
             self.gamma_angle = nengo.Node(output=self.gamma,
                                           label="Constant shoulder incline")
-            self.idle_shoulder_angle = nengo.Node(
-                output=self.idle_shoulder, label="Constant shoulder idle angle")
             # endregion
             # region Compute the elbow position
             self.alpha_angle = nengo.Ensemble(n_neurons=self.n_neurons,
@@ -178,34 +173,34 @@ class Arm(nengo.Network):
                                               radius=self.angle_radius,
                                               label="Shoulder alpha angle")
 
-            self.ERx = nengo.networks.EnsembleArray(2 * self.n_neurons,
+            self.shoulder_Rz = nengo.networks.EnsembleArray(self.n_neurons,
                                                     _rotation_mat.size,
                                                     radius=self.angle_radius)
 
-            nengo.Connection(self.gamma_angle, self.ERx.input,
+            nengo.Connection(self.gamma_angle, self.shoulder_Rz.input,
                              function=lambda x: [np.cos(x), -np.sin(x), 0,
                                                  np.sin(x), np.cos(x), 0,
                                                  0, 0, 1])
 
-            self.ERy = nengo.networks.EnsembleArray(2 * self.n_neurons,
+            self.shoulder_Ry = nengo.networks.EnsembleArray(self.n_neurons,
                                                     _rotation_mat.size,
                                                     radius=self.angle_radius)
 
-            nengo.Connection(self.alpha_angle, self.ERy.input,
+            nengo.Connection(self.alpha_angle, self.shoulder_Ry.input,
                              function=lambda x: [np.cos(-x), 0, np.sin(-x),
                                                  0, 1, 0,
                                                  -np.sin(-x), 0, np.cos(-x)])
 
             self.elbow_rotation = MatrixMultiplication(
-                n_neurons=2 * self.n_neurons, matrix_A=_rotation_mat,
+                n_neurons=self.n_neurons, matrix_A=_rotation_mat,
                 matrix_B=_rotation_mat, radius=self.angle_radius,
                 seed=self.seed)
 
-            nengo.Connection(self.ERx.output, self.elbow_rotation.in_B)
-            nengo.Connection(self.ERy.output, self.elbow_rotation.in_A)
+            nengo.Connection(self.shoulder_Rz.output, self.elbow_rotation.in_B)
+            nengo.Connection(self.shoulder_Ry.output, self.elbow_rotation.in_A)
 
             self.elbow_position_computer = MatrixMultiplication(
-                n_neurons=2 * self.n_neurons, radius=self.length_radius,
+                n_neurons=self.n_neurons, radius=self.length_radius,
                 seed=self.seed)
 
             nengo.Connection(self.elbow_rotation.output,
@@ -218,35 +213,35 @@ class Arm(nengo.Network):
                 radius=self.length_radius)
 
             nengo.Connection(self.elbow_position_computer.output,
-                             self.elbow_world_position)
+                             self.elbow_world_position, synapse=self.tau)
             nengo.Connection(self._shoulder,
-                             self.elbow_world_position)
+                             self.elbow_world_position, synapse=self.tau)
 
             # endregion
             # region Compute the hand position
             self.beta_angle = nengo.Ensemble(n_neurons=self.n_neurons,
                                              dimensions=1,
                                              radius=self.angle_radius)
-            self.HRx = nengo.networks.EnsembleArray(2 * self.n_neurons,
+            self.elbow_Rz = nengo.networks.EnsembleArray(self.n_neurons,
                                                     _rotation_mat.size,
                                                     radius=self.angle_radius)
 
-            nengo.Connection(self.beta_angle, self.HRx.input,
+            nengo.Connection(self.beta_angle, self.elbow_Rz.input,
                              function=lambda x: [np.cos(x), -np.sin(x), 0,
                                                  np.sin(x), np.cos(x), 0,
                                                  0, 0, 1])
 
             self.hand_rotation = MatrixMultiplication(
-                n_neurons=2 * self.n_neurons, matrix_A=_rotation_mat,
-                matrix_B=_rotation_mat,  radius=self.angle_radius,
+                n_neurons=self.n_neurons, matrix_A=_rotation_mat,
+                matrix_B=_rotation_mat, radius=self.angle_radius,
                 seed=self.seed)
 
             nengo.Connection(self.elbow_rotation.output,
                              self.hand_rotation.in_A)
-            nengo.Connection(self.HRx.output, self.hand_rotation.in_B)
+            nengo.Connection(self.elbow_Rz.output, self.hand_rotation.in_B)
 
             self.hand_position_computer = MatrixMultiplication(
-                n_neurons=2 * self.n_neurons, radius=self.length_radius,
+                n_neurons=self.n_neurons, radius=self.length_radius,
                 seed=self.seed)
 
             nengo.Connection(self.hand_rotation.output,
@@ -258,14 +253,13 @@ class Arm(nengo.Network):
                 radius=self.length_radius)
 
             nengo.Connection(self.hand_position_computer.output,
-                             self.hand_world_position)
+                             self.hand_world_position, synapse=self.tau)
             nengo.Connection(self.elbow_world_position,
-                             self.hand_world_position)
+                             self.hand_world_position, synapse=self.tau)
             # endregion
-            # region Compute the max distance elbow position
 
-            # endregion
-            # region Compute error between current elbow and max elbow position
+
+            # region Compute the max distance elbow position
 
             # endregion
             # region Upper hand movement
