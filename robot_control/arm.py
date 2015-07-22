@@ -10,9 +10,10 @@ import warnings
 # TODO Consider error function using the difference of the slope of the
 # target and current
 
-def _error(x):
-    target_x, target_y, current_x, current_y = x
-    return (target_x - current_x) ** 2, (target_y - current_y) ** 2
+def _alpha_error(x):
+    target_alpha, current_alpha = x
+    return np.sign(target_alpha - current_alpha) * \
+           (target_alpha - current_alpha) ** 2
 
 
 _rotation_mat = np.asarray(np.eye(3))
@@ -174,8 +175,8 @@ class Arm(nengo.Network):
                                               label="Shoulder alpha angle")
 
             self.shoulder_Rz = nengo.networks.EnsembleArray(self.n_neurons,
-                                                    _rotation_mat.size,
-                                                    radius=self.angle_radius)
+                                                            _rotation_mat.size,
+                                                            radius=self.angle_radius)
 
             nengo.Connection(self.gamma_angle, self.shoulder_Rz.input,
                              function=lambda x: [np.cos(x), -np.sin(x), 0,
@@ -183,8 +184,8 @@ class Arm(nengo.Network):
                                                  0, 0, 1])
 
             self.shoulder_Ry = nengo.networks.EnsembleArray(self.n_neurons,
-                                                    _rotation_mat.size,
-                                                    radius=self.angle_radius)
+                                                            _rotation_mat.size,
+                                                            radius=self.angle_radius)
 
             nengo.Connection(self.alpha_angle, self.shoulder_Ry.input,
                              function=lambda x: [np.cos(-x), 0, np.sin(-x),
@@ -223,8 +224,8 @@ class Arm(nengo.Network):
                                              dimensions=1,
                                              radius=self.angle_radius)
             self.elbow_Rz = nengo.networks.EnsembleArray(self.n_neurons,
-                                                    _rotation_mat.size,
-                                                    radius=self.angle_radius)
+                                                         _rotation_mat.size,
+                                                         radius=self.angle_radius)
 
             nengo.Connection(self.beta_angle, self.elbow_Rz.input,
                              function=lambda x: [np.cos(x), -np.sin(x), 0,
@@ -257,13 +258,47 @@ class Arm(nengo.Network):
             nengo.Connection(self.elbow_world_position,
                              self.hand_world_position, synapse=self.tau)
             # endregion
+            # region Error between target and current alpha angles
+            self.target_position_ens = nengo.Ensemble(6 * self.n_neurons, 3,
+                                                      radius=self.length_radius)
+            nengo.Connection(self._shoulder, self.target_position_ens)
+            nengo.Connection(self.target_position, self.target_position_ens,
+                             transform=-np.eye(3))
+
+            self.target_angle = nengo.Ensemble(2 * self.n_neurons, 1,
+                                               radius=self.angle_radius)
 
 
+            # TODO Modify to take into account the fact that the angle should
+            # be in quadrants I or IV
+            nengo.Connection(self.target_position_ens, self.target_angle,
+                             function=lambda x: np.arctan2(x[2], x[0]))
+
+            self.shoulder_combo = nengo.Ensemble(2 * self.n_neurons, 2,
+                                                 radius=self.angle_radius)
+
+            nengo.Connection(self.target_angle, self.shoulder_combo[0])
+            nengo.Connection(self.alpha_angle, self.shoulder_combo[1])
+
+            self.shoulder_error = nengo.Ensemble(self.n_neurons, 1,
+                                                 radius=self.angle_radius)
+
+            nengo.Connection(self.shoulder_combo, self.shoulder_error,
+                             function=_alpha_error)
+
+            nengo.Connection(self.shoulder_error, self.alpha_angle,
+                             synapse=self.tau,
+                             transform=[[self.tau]])
+            nengo.Connection(self.alpha_angle, self.alpha_angle,
+                             synapse=self.tau)
+
+            # endregion
             # region Compute the max distance elbow position
 
             # endregion
             # region Upper hand movement
-
+            nengo.Connection(self.shoulder_error, self.shoulder_motor,
+                             synapse=self.tau)
             # endregion
             # region Lower hand movement
 
