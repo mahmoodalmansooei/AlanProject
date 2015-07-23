@@ -16,10 +16,12 @@ def _alpha_error(x):
 
 
 def _beta_error(x):
-    x = np.asarray(x)
-    target = x[0:3]
-    current = x[3:6]
-    return np.sign(target[1] - current[1]) * np.sum((target - current) ** 2)
+    # x = np.asarray(x)
+    # target = x[0:3]
+    # current = x[3:6]
+    # return np.sign(target[1] - current[1]) * np.sum((target - current) ** 2)
+    target_y, current_y = x
+    return np.sign(current_y - target_y) * (target_y - current_y) ** 2
 
 
 _rotation_mat = np.asarray(np.eye(3))
@@ -99,6 +101,9 @@ class Arm(nengo.Network):
         # TODO Need to have an option for left / right hand
 
         # TODO Use self.done
+
+        # TODO Use enums for referencing outputs (e.g. output[Enum.X] instead of
+        # output[1]
         super(Arm, self).__init__(label, seed, add_to_container)
         # region Variable assignment
         self.n_neurons = n_neurons
@@ -150,8 +155,13 @@ class Arm(nengo.Network):
         # endregion
         with self:
             # region input
-            self.target_position = nengo.Ensemble(self.n_neurons, dimensions=3,
-                                                  radius=self.length_radius)
+            # self.target_position = nengo.Ensemble(3 * self.n_neurons,
+            #                                       dimensions=3,
+            #                                       radius=self.length_radius)
+
+            self.target_position = nengo.networks.EnsembleArray(
+                self.n_neurons, n_ensembles=3)
+
             self.external_shoulder_error = nengo.Ensemble(
                 self.n_neurons, dimensions=1,
                 radius=self.angle_radius)
@@ -281,32 +291,35 @@ class Arm(nengo.Network):
                              self.hand_world_position, synapse=self.tau)
             # endregion
             # region Error between target and current alpha angles
-            self.target_position_ens = nengo.Ensemble(6 * self.n_neurons, 3,
-                                                      radius=self.length_radius)
-            nengo.Connection(self._shoulder, self.target_position_ens)
-            nengo.Connection(self.target_position, self.target_position_ens,
+            self.translated_target_position = nengo.Ensemble(
+                6 * self.n_neurons, 3,
+                radius=self.length_radius)
+            nengo.Connection(self._shoulder, self.translated_target_position)
+            nengo.Connection(self.target_position.output,
+                             self.translated_target_position,
                              transform=-np.eye(3))
 
             self.target_angle = nengo.Ensemble(2 * self.n_neurons, 1,
                                                radius=self.angle_radius)
 
-
             # TODO Modify to take into account the fact that the angle should
             # be in quadrants I or IV
-            nengo.Connection(self.target_position_ens, self.target_angle,
+            nengo.Connection(self.translated_target_position, self.target_angle,
                              function=lambda x: np.arctan2(x[2], x[0]))
 
-            self.shoulder_combo = nengo.Ensemble(2 * self.n_neurons, 2,
-                                                 radius=self.angle_radius)
+            self.shoulder_controller = nengo.Ensemble(2 * self.n_neurons, 2,
+                                                      radius=self.angle_radius)
 
-            nengo.Connection(self.target_angle, self.shoulder_combo[0])
-            nengo.Connection(self.alpha_angle, self.shoulder_combo[1])
+            nengo.Connection(self.target_angle, self.shoulder_controller[0])
+            nengo.Connection(self.alpha_angle, self.shoulder_controller[1])
 
             self.shoulder_error = nengo.Ensemble(self.n_neurons, 1,
                                                  radius=self.angle_radius)
 
-            nengo.Connection(self.shoulder_combo, self.shoulder_error,
+            nengo.Connection(self.shoulder_controller, self.shoulder_error,
                              function=_alpha_error)
+
+            # Feedback error
 
             nengo.Connection(self.shoulder_error, self.alpha_angle,
                              synapse=self.tau,
@@ -317,8 +330,26 @@ class Arm(nengo.Network):
             # endregion
             # region Error between target and current beta angles
             # Elbow error
+            self.elbow_controller = nengo.Ensemble(2 * self.n_neurons, 2,
+                                                   radius=self.angle_radius)
+            nengo.Connection(self.target_position.output[1],
+                             self.elbow_controller[0])
+            nengo.Connection(self.hand_world_position[1],
+                             self.elbow_controller[1])
+
             self.elbow_error = nengo.Ensemble(self.n_neurons, 1,
                                               radius=self.angle_radius)
+            nengo.Connection(self.elbow_controller, self.elbow_error,
+                             function=_beta_error)
+
+            # Feedback error
+
+            nengo.Connection(self.elbow_error, self.beta_angle,
+                             synapse=self.tau,
+                             transform=[[self.elbow_sensitivity * self.tau]])
+            nengo.Connection(self.beta_angle, self.beta_angle,
+                             synapse=self.tau)
+
             # Shoulder error inhibits the elbow
 
             # endregion
@@ -365,11 +396,12 @@ class Arm(nengo.Network):
                 transform=[[-2.5]] * self.finger_motor_control.n_neurons)
 
             nengo.Connection(
-                self.enable, self.alpha_angle.neurons,
-                transform=[[-2.5]] * self.alpha_angle.n_neurons)
+                self.enable, self.shoulder_controller.neurons,
+                transform=[[-2.5]] * self.shoulder_controller.n_neurons)
+
             nengo.Connection(
-                self.enable, self.beta_angle.neurons,
-                transform=[[-2.5]] * self.beta_angle.n_neurons)
+                self.enable, self.elbow_controller.neurons,
+                transform=[[-2.5]] * self.elbow_controller.n_neurons)
             # endregion
 
 
