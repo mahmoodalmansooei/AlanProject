@@ -29,7 +29,7 @@ def e_error(x):
     """
     adjusted_target = x[0] - x[4]
     return np.sign(adjusted_target - x[2]) * ((adjusted_target - x[2]) ** 2), \
-           np.sign(x[1] - x[3]) * ((x[1] - x[3]) ** 2)
+        np.sign(x[1] - x[3]) * ((x[1] - x[3]) ** 2)
 
 
 class Head(nengo.Network):
@@ -88,6 +88,10 @@ class Head(nengo.Network):
 
         # TODO Connect external error to motor/sensor (they must decay
         # TODO realistically if not updated)
+
+        # TODO Use self.done
+
+        # TODO Add speech functionality
         super(Head, self).__init__(label, seed, add_to_container)
         # region Variable assignment
         self.n_neurons = n_neurons
@@ -102,6 +106,10 @@ class Head(nengo.Network):
         # region Type checking and casting; bounds checking
         if type(lips_position_offset) != np.ndarray:
             self.lips_position_offset = np.asarray(lips_position_offset)
+
+        assert self.lips_position_offset.size == 3, "Position vector should " \
+                                                    "have 3 dimensions"
+
         if not all(-self.length_radius <= x <= self.length_radius for x in
                    self.lips_position_offset):
             warnings.warn(
@@ -110,18 +118,34 @@ class Head(nengo.Network):
         # endregion
         with self:
             # region input
-            self.target_position = nengo.Node(size_in=2)
-            self.external_head_error = nengo.Node(size_in=1)
-            self.external_eye_error = nengo.Node(size_in=1)
+            self.target_position = nengo.Ensemble(2 * self.n_neurons,
+                                                  dimensions=2,
+                                                  radius=self.length_radius)
+            self.external_head_error = nengo.Ensemble(
+                self.n_neurons, dimensions=1,
+                radius=self.angle_radius)
+            self.external_eye_error = nengo.Ensemble(
+                self.n_neurons, dimensions=1,
+                radius=self.angle_radius)
             # endregion
             # region output
-            self.lips_position = nengo.Node(size_in=3)
-            self.head_motor = nengo.Node(size_in=1)
-            self.eye_motor = nengo.Node(size_in=2)
-            self.done = nengo.Node(size_in=1)
+            self.lips_position = nengo.Ensemble(
+                3 * self.n_neurons, dimensions=3,
+                radius=self.length_radius)
+            self.head_motor = nengo.Ensemble(
+                self.n_neurons, dimensions=1,
+                radius=1)
+            self.eye_motor = nengo.Ensemble(
+                2 * self.n_neurons, dimensions=2,
+                radius=self.angle_radius)
+            self.done = nengo.Ensemble(
+                self.n_neurons, dimensions=1,
+                radius=self.angle_radius)
             # endregion
             # region control
-            self.enable = nengo.Node(size_in=1)
+            self.enable = nengo.Ensemble(
+                self.n_neurons, dimensions=1,
+                radius=self.angle_radius)
             # endregion
             # region lip offset
             _lips_position_offset = nengo.Node(
