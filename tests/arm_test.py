@@ -9,35 +9,29 @@ robot_control.arm = reload(robot_control.arm)
 
 model = nengo.Network("Arm movement test", seed=len("SpiNNaker"))
 
-l = 0.25
-h = 0.2
+# l = 0.2
+# h = 0.2
+l = 1
+h = 1
 
-upper_length = 0.3
-lower_length = 0.35
+upper_length = 1
+lower_length = 1
 
-# gamma = np.pi / 4
 gamma = 0
 
 shoulder_position = np.asarray([l, 0, -h])
 
 lips_offset = np.asarray([0, .2, 0])
 
-# elbow_position = np.asarray([0, upper_length, 0])
-elbow_position = np.asarray([0, upper_length, 0])
+elbow_position = np.asarray([upper_length, 0, 0])
 
 hand_position = np.asarray([0, lower_length, 0])
 
 with model:
     target = nengo.Node(output=lips_offset.ravel())
-    # enabled = nengo.Node(output=piecewise({0: 1, 2: 0}))
+    enabled = nengo.Node(output=piecewise({0: 1, 2: 0}))
     arm = robot_control.arm.Arm(shoulder_position, elbow_position,
                                 hand_position, gamma,
                                 seed=len("SpiNNaker"))
-
-    shoulder_alpha = nengo.Node(output=np.pi / 2)
-    nengo.Connection(shoulder_alpha, arm.alpha_angle)
-
-    elbow_beta = nengo.Node(output=np.pi / 2)
-    nengo.Connection(elbow_beta, arm.beta_angle)
-    # nengo.Connection(target, head.target_position)
-    # nengo.Connection(enabled, head.enable)
+    nengo.Connection(target, arm.target_position)
+    nengo.Connection(enabled, arm.enable)
