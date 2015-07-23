@@ -19,7 +19,7 @@ def _beta_error(x):
     x = np.asarray(x)
     target = x[0:3]
     current = x[3:6]
-    return np.sign(target[1]-current[1]) * np.sum((target-current)**2)
+    return np.sign(target[1] - current[1]) * np.sum((target - current) ** 2)
 
 
 _rotation_mat = np.asarray(np.eye(3))
@@ -150,19 +150,35 @@ class Arm(nengo.Network):
         # endregion
         with self:
             # region input
-            self.target_position = nengo.Node(size_in=3)
-            self.external_shoulder_error = nengo.Node(size_in=1)
-            self.external_elbow_error = nengo.Node(size_in=1)
-            self.external_finger_error = nengo.Node(size_in=1)
+            self.target_position = nengo.Ensemble(self.n_neurons, dimensions=3,
+                                                  radius=self.length_radius)
+            self.external_shoulder_error = nengo.Ensemble(
+                self.n_neurons, dimensions=1,
+                radius=self.angle_radius)
+            self.external_elbow_error = nengo.Ensemble(
+                self.n_neurons, dimensions=1,
+                radius=self.angle_radius)
+            self.external_finger_error = nengo.Ensemble(
+                self.n_neurons, dimensions=1,
+                radius=self.angle_radius)
             # endregion
             # region output
-            self.shoulder_motor = nengo.Node(size_in=1)
-            self.elbow_motor = nengo.Node(size_in=1)
-            self.finger_motor = nengo.Node(size_in=1)
-            self.done = nengo.Node(size_in=1)
+            self.shoulder_motor = nengo.Ensemble(
+                self.n_neurons, dimensions=1,
+                radius=1)
+            self.elbow_motor = nengo.Ensemble(
+                self.n_neurons, dimensions=1,
+                radius=1)
+            self.finger_motor = nengo.Ensemble(
+                self.n_neurons, dimensions=1,
+                radius=1)
+            self.done = nengo.Ensemble(
+                self.n_neurons, dimensions=1,
+                radius=1)
             # endregion
             # region control
-            self.enable = nengo.Node(size_in=1)
+            self.enable = nengo.Ensemble(
+                self.n_neurons, dimensions=1, radius=1)
             # endregion
             # region constants
             self._shoulder = nengo.Node(output=self.shoulder_position.ravel(),
@@ -332,7 +348,7 @@ class Arm(nengo.Network):
             # region Finger movement
             self.finger_motor_control = nengo.Ensemble(
                 n_neurons=self.n_neurons, dimensions=1, radius=1)
-            nengo.Connection(self.finger_motor, self.finger_motor_control,
+            nengo.Connection(self.finger_error, self.finger_motor_control,
                              transform=[[self.finger_sensitivity]],
                              synapse=0.1)
             nengo.Connection(self.finger_motor_control, self.finger_motor)
