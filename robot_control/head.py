@@ -118,9 +118,8 @@ class Head(nengo.Network):
         # endregion
         with self:
             # region input
-            self.target_position = nengo.Ensemble(2 * self.n_neurons,
-                                                  dimensions=2,
-                                                  radius=self.length_radius)
+            self.target_position = nengo.networks.EnsembleArray(self.n_neurons,
+                                                                n_ensembles=2)
             self.external_head_error = nengo.Ensemble(
                 self.n_neurons, dimensions=1,
                 radius=self.angle_radius)
@@ -170,7 +169,7 @@ class Head(nengo.Network):
 
             nengo.Connection(pre=self.current_head,
                              post=self.head_controller[0])
-            nengo.Connection(pre=self.target_position[0],
+            nengo.Connection(pre=self.target_position.output[0],
                              post=self.head_controller[1], synapse=0.01)
 
             nengo.Connection(pre=self.head_controller, post=self.head_error,
@@ -184,7 +183,7 @@ class Head(nengo.Network):
                              transform=[[1]], synapse=self.tau)
             # endregion
             # region Eye movement
-            self.eye_error = nengo.Ensemble(n_neurons=self.n_neurons,
+            self.eye_error = nengo.Ensemble(n_neurons=3 * self.n_neurons,
                                             dimensions=2,
                                             radius=self.angle_radius,
                                             label="Eye error")
@@ -193,7 +192,7 @@ class Head(nengo.Network):
                                                  dimensions=5,
                                                  radius=self.angle_radius)
 
-            self.current_eye = nengo.Ensemble(n_neurons=self.n_neurons,
+            self.current_eye = nengo.Ensemble(n_neurons=2 * self.n_neurons,
                                               dimensions=2,
                                               radius=self.angle_radius)
 
@@ -203,8 +202,8 @@ class Head(nengo.Network):
 
             # Connections for eye controller from target and current eye
             # positions
-            nengo.Connection(self.target_position[0], self.eye_controller[0])
-            nengo.Connection(self.target_position[1], self.eye_controller[1])
+            nengo.Connection(self.target_position.output[0], self.eye_controller[0])
+            nengo.Connection(self.target_position.output[1], self.eye_controller[1])
 
             nengo.Connection(self.current_eye[0], self.eye_controller[2])
             nengo.Connection(self.current_eye[1], self.eye_controller[3])
@@ -225,34 +224,19 @@ class Head(nengo.Network):
             # endregion
             # region Compute the final position of the lips
             self.rotation_transformation = MatrixMultiplication(
-                n_neurons=self.n_neurons, radius=self.length_radius,
+                n_neurons=2 * self.n_neurons, radius=self.angle_radius,
                 label="Rotation transform")
 
-            _combo = nengo.Ensemble(n_neurons=self.n_neurons, dimensions=1,
-                                    label="Relay", radius=self.angle_radius)
+            self.lip_controller = nengo.Ensemble(n_neurons=self.n_neurons,
+                                                 dimensions=1,
+                                                 radius=self.angle_radius)
 
-            nengo.Connection(self.target_position[0], _combo)
-
-            nengo.Connection(_combo,
-                             self.rotation_transformation.in_A[0],
-                             function=lambda x: np.cos(x))
-
-            nengo.Connection(_combo,
-                             self.rotation_transformation.in_A[4],
-                             function=lambda x: np.cos(x))
-
-            nengo.Connection(_combo,
-                             self.rotation_transformation.in_A[1],
-                             function=lambda x: np.sin(x))
-
-            nengo.Connection(_combo,
-                             self.rotation_transformation.in_A[3],
-                             function=lambda x: -np.sin(x))
-
-            nengo.Connection(_combo,
-                             self.rotation_transformation.in_A[8],
-                             function=lambda x: 1)
-
+            nengo.Connection(self.target_position.output[0], self.lip_controller)
+            nengo.Connection(self.lip_controller,
+                             self.rotation_transformation.in_A,
+                             function=lambda x: [np.cos(x), -np.sin(x), 0,
+                                                 np.sin(x), np.cos(x), 0,
+                                                 0, 0, 1])
             nengo.Connection(_lips_position_offset,
                              self.rotation_transformation.in_B)
 
@@ -296,4 +280,7 @@ class Head(nengo.Network):
             nengo.Connection(
                 self.enable, self.head_controller.neurons,
                 transform=[[-2.5]] * self.head_controller.n_neurons)
+            nengo.Connection(
+                self.enable, self.lip_controller.neurons,
+                transform=[[-2.5]] * self.lip_controller.n_neurons)
             # endregion
