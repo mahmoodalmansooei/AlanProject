@@ -4,6 +4,7 @@ import nengo
 import numpy as np
 import warnings
 from robot_utils.matrix_multiplication import MatrixMultiplication
+import math
 
 
 # TODO Consider error function using the difference of the slope of the
@@ -20,8 +21,9 @@ def _beta_error(x):
     # target = x[0:3]
     # current = x[3:6]
     # return np.sign(target[1] - current[1]) * np.sum((target - current) ** 2)
-    target_y, current_y = x
-    return np.sign(current_y - target_y) * (target_y - current_y) ** 2
+    target_beta, current_beta = x
+    return np.sign(target_beta - current_beta) * \
+           (target_beta - current_beta) ** 2
 
 
 _rotation_mat = np.asarray(np.eye(3))
@@ -30,9 +32,9 @@ _position_vector = np.ones((3, 1))
 
 class Arm(nengo.Network):
     def __init__(self, shoulder_position, elbow_position, hand_position, gamma,
-                 n_neurons=100, length_radius=1.2,
-                 angle_radius=1.5, tau=0.2, shoulder_sensitivity=1.3,
-                 elbow_sensitivity=2.0, finger_sensitivity=2.0,
+                 n_neurons=100, length_radius=1.7,
+                 angle_radius=1.57, tau=0.2, shoulder_sensitivity=1.3,
+                 elbow_sensitivity=1.0, finger_sensitivity=2.0,
                  label=None, seed=None,
                  add_to_container=None):
         """
@@ -187,8 +189,9 @@ class Arm(nengo.Network):
                 radius=1)
             # endregion
             # region control
-            self.enable = nengo.Ensemble(
-                self.n_neurons, dimensions=1, radius=1)
+            self.enable = nengo.Ensemble(self.n_neurons, dimensions=1, radius=1)
+            self.action_enable = nengo.Ensemble(self.n_neurons, dimensions=1,
+                                                radius=1)
             # endregion
             # region constants
             self._shoulder = nengo.Node(output=self.shoulder_position.ravel(),
@@ -226,7 +229,7 @@ class Arm(nengo.Network):
 
             self.elbow_rotation = MatrixMultiplication(
                 n_neurons=self.n_neurons, matrix_A=_rotation_mat,
-                matrix_B=_rotation_mat, radius=self.angle_radius,
+                matrix_B=_rotation_mat, radius=1,
                 seed=self.seed)
 
             nengo.Connection(self.shoulder_Rz.output, self.elbow_rotation.in_B)
@@ -292,12 +295,13 @@ class Arm(nengo.Network):
             # endregion
             # region Error between target and current alpha angles
             self.translated_target_position = nengo.Ensemble(
-                6 * self.n_neurons, 3,
+                6 * self.n_neurons, 2,
                 radius=self.length_radius)
-            nengo.Connection(self._shoulder, self.translated_target_position)
+            nengo.Connection(self._shoulder, self.translated_target_position,
+                             transform=[[1, 0, 0], [0, 0, 1]])
             nengo.Connection(self.target_position.output,
                              self.translated_target_position,
-                             transform=-np.eye(3))
+                             transform=[[-1, 0, 0], [0, 0, -1]])
 
             self.target_angle = nengo.Ensemble(2 * self.n_neurons, 1,
                                                radius=self.angle_radius)
@@ -305,7 +309,7 @@ class Arm(nengo.Network):
             # TODO Modify to take into account the fact that the angle should
             # be in quadrants I or IV
             nengo.Connection(self.translated_target_position, self.target_angle,
-                             function=lambda x: np.arctan2(x[2], x[0]))
+                             function=lambda x: np.arctan2(x[1], x[0]))
 
             self.shoulder_controller = nengo.Ensemble(2 * self.n_neurons, 2,
                                                       radius=self.angle_radius)
@@ -329,13 +333,78 @@ class Arm(nengo.Network):
 
             # endregion
             # region Error between target and current beta angles
+            """
+            Beta angle error will be computed in the following way:
+
+            - compute the position of the new_target = target - shoulder
+            - rotate the new_target by -alpha around Y, then by -gamma around Z
+            - compute the np.arctan2 of the final_target
+            - error computation will take into account that beta is should be
+            considered as beta + pi/2 because beta=0 should be the angle at
+            which the lower arm is perpendicular on the upper arm
+            """
+
+            self.new_target = nengo.networks.EnsembleArray(
+                self.n_neurons, 3,
+                radius=self.length_radius)
+
+            nengo.Connection(self.target_position.output, self.new_target.input)
+            nengo.Connection(self._shoulder, self.new_target.input,
+                             transform=-np.eye(3))
+
+            self.inv_shoulder_Rz = nengo.networks.EnsembleArray(
+                self.n_neurons,
+                _rotation_mat.size,
+                radius=self.angle_radius)
+
+            nengo.Connection(self.gamma_angle, self.inv_shoulder_Rz.input,
+                             function=lambda x: [np.cos(-x), -np.sin(-x), 0,
+                                                 np.sin(-x), np.cos(-x), 0,
+                                                 0, 0, 1])
+
+            self.inv_shoulder_Ry = nengo.networks.EnsembleArray(
+                self.n_neurons,
+                _rotation_mat.size,
+                radius=self.angle_radius)
+
+            nengo.Connection(self.alpha_angle, self.inv_shoulder_Ry.input,
+                             function=lambda x: [np.cos(x), 0, np.sin(x),
+                                                 0, 1, 0,
+                                                 -np.sin(x), 0, np.cos(x)])
+
+            self.inv_rotations = MatrixMultiplication(self.n_neurons,
+                                                      matrix_A=_rotation_mat,
+                                                      matrix_B=_rotation_mat,
+                                                      radius=1)
+
+            nengo.Connection(self.inv_shoulder_Rz.output,
+                             self.inv_rotations.in_A)
+            nengo.Connection(self.inv_shoulder_Ry.output,
+                             self.inv_rotations.in_B)
+
+            self.final_target = MatrixMultiplication(self.n_neurons,
+                                                     radius=self.angle_radius)
+
+            nengo.Connection(self.inv_rotations.output, self.final_target.in_A)
+            nengo.Connection(self.new_target.output, self.final_target.in_B)
+
             # Elbow error
-            self.elbow_controller = nengo.Ensemble(2 * self.n_neurons, 2,
+
+            self.final_target_XY = nengo.Ensemble(8 * self.n_neurons,
+                                                  dimensions=2,
+                                                  radius=2 * self.length_radius)
+
+            nengo.Connection(self.final_target.output[0:2],
+                             self.final_target_XY)
+
+            self.elbow_controller = nengo.Ensemble(8 * self.n_neurons,
+                                                   dimensions=2,
                                                    radius=self.angle_radius)
-            nengo.Connection(self.target_position.output[1],
-                             self.elbow_controller[0])
-            nengo.Connection(self.hand_world_position[1],
-                             self.elbow_controller[1])
+
+            nengo.Connection(self.final_target_XY, self.elbow_controller[0],
+                             function=lambda x: [
+                                 np.abs(np.arctan2(x[1], x[0])) - np.pi / 2])
+            nengo.Connection(self.beta_angle, self.elbow_controller[1])
 
             self.elbow_error = nengo.Ensemble(self.n_neurons, 1,
                                               radius=self.angle_radius)
