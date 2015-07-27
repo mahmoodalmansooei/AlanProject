@@ -18,7 +18,7 @@ def h_error(x):
     return np.sign(x[1] - x[0]) * ((x[0] - x[1]) ** 2)
 
 
-def e_error(x):
+def e_x_error(x):
     """
     Squared-error function. Also gives the required direction of movement
     :param x: A vector consisting of the target position [0, 1], the current
@@ -27,9 +27,20 @@ def e_error(x):
     :return: The correction needed to match the target
     :rtype: float
     """
-    adjusted_target = x[0] - x[4]
-    return np.sign(adjusted_target - x[2]) * ((adjusted_target - x[2]) ** 2), \
-        np.sign(x[1] - x[3]) * ((x[1] - x[3]) ** 2)
+    adjusted_target = x[0] - x[2]
+    return np.sign(adjusted_target - x[1]) * ((adjusted_target - x[1]) ** 2)
+
+
+def e_y_error(x):
+    """
+    Squared-error function. Also gives the required direction of movement
+    :param x: A vector consisting of the target position [0, 1], the current
+    position [2, 3] and the current head position
+    :type x: float[5]
+    :return: The correction needed to match the target
+    :rtype: float
+    """
+    return np.sign(x[0] - x[1]) * ((x[0] - x[1]) ** 2)
 
 
 class Head(nengo.Network):
@@ -183,43 +194,74 @@ class Head(nengo.Network):
                              transform=[[1]], synapse=self.tau)
             # endregion
             # region Eye movement
-            self.eye_error = nengo.Ensemble(n_neurons=3 * self.n_neurons,
-                                            dimensions=2,
-                                            radius=self.angle_radius,
-                                            label="Eye error")
 
-            self.eye_controller = nengo.Ensemble(n_neurons=6 * self.n_neurons,
-                                                 dimensions=5,
-                                                 radius=self.angle_radius)
+            # Splitting controller and error into different ensembles should
+            # increase accuracy of computation
 
-            self.current_eye = nengo.Ensemble(n_neurons=2 * self.n_neurons,
-                                              dimensions=2,
-                                              radius=self.angle_radius)
+            self.eye_x_error = nengo.Ensemble(n_neurons=self.n_neurons,
+                                              dimensions=1,
+                                              radius=self.angle_radius,
+                                              label="Eye X error")
 
+            self.eye_y_error = nengo.Ensemble(n_neurons=self.n_neurons,
+                                              dimensions=1,
+                                              radius=self.angle_radius,
+                                              label="Eye Y error")
+
+            self.eye_x_controller = nengo.Ensemble(n_neurons=5 * self.n_neurons,
+                                                   dimensions=3,
+                                                   radius=self.angle_radius,
+                                                   label="Eye X controller")
+
+            self.eye_y_controller = nengo.Ensemble(n_neurons=3 * self.n_neurons,
+                                                   dimensions=2,
+                                                   radius=self.angle_radius,
+                                                   label="Eye Y controller")
+
+            self.current_eye_x = nengo.Ensemble(n_neurons=self.n_neurons,
+                                                dimensions=1,
+                                                radius=self.angle_radius,
+                                                label="Current eye X")
+
+            self.current_eye_y = nengo.Ensemble(n_neurons=self.n_neurons,
+                                                dimensions=1,
+                                                radius=self.angle_radius,
+                                                label="Current eye Y")
             # Feed current head position in the eye controller to compute the
             # proper error
-            nengo.Connection(self.current_head, self.eye_controller[4])
+            nengo.Connection(self.current_head, self.eye_x_controller[2])
 
             # Connections for eye controller from target and current eye
             # positions
-            nengo.Connection(self.target_position.output[0], self.eye_controller[0])
-            nengo.Connection(self.target_position.output[1], self.eye_controller[1])
+            nengo.Connection(self.target_position.output[0],
+                             self.eye_x_controller[0])
+            nengo.Connection(self.target_position.output[1],
+                             self.eye_y_controller[0])
 
-            nengo.Connection(self.current_eye[0], self.eye_controller[2])
-            nengo.Connection(self.current_eye[1], self.eye_controller[3])
+            nengo.Connection(self.current_eye_x, self.eye_x_controller[1])
+            nengo.Connection(self.current_eye_y, self.eye_y_controller[1])
 
-            nengo.Connection(self.eye_controller, self.eye_error,
-                             function=e_error)
+            nengo.Connection(self.eye_x_controller, self.eye_x_error,
+                             function=e_x_error)
+
+            nengo.Connection(self.eye_y_controller, self.eye_y_error,
+                             function=e_y_error)
 
             # Feedback from eye error
             nengo.Connection(
-                self.eye_error, self.current_eye,
-                transform=[[self.eye_x_sensitivity * self.tau, 0],
-                           [0, self.eye_y_sensitivity * self.tau]],
+                self.eye_x_error, self.current_eye_x,
+                transform=[[self.eye_x_sensitivity * self.tau]],
+                synapse=self.tau)
+
+            nengo.Connection(
+                self.eye_y_error, self.current_eye_y,
+                transform=[[self.eye_x_sensitivity * self.tau]],
                 synapse=self.tau)
 
             # Current eye position integrator
-            nengo.Connection(self.current_eye, self.current_eye,
+            nengo.Connection(self.current_eye_x, self.current_eye_x,
+                             synapse=self.tau)
+            nengo.Connection(self.current_eye_y, self.current_eye_y,
                              synapse=self.tau)
             # endregion
             # region Compute the final position of the lips
@@ -231,7 +273,8 @@ class Head(nengo.Network):
                                                  dimensions=1,
                                                  radius=self.angle_radius)
 
-            nengo.Connection(self.target_position.output[0], self.lip_controller)
+            nengo.Connection(self.target_position.output[0],
+                             self.lip_controller)
             nengo.Connection(self.lip_controller,
                              self.rotation_transformation.in_A,
                              function=lambda x: [np.cos(x), -np.sin(x), 0,
@@ -259,9 +302,12 @@ class Head(nengo.Network):
                 n_neurons=2 * self.n_neurons, dimensions=2, radius=1)
 
             nengo.Connection(
-                self.eye_error, self.eye_motor_control,
-                transform=[[1. / self.angle_radius, 0],
-                           [0, 1. / self.angle_radius]],
+                self.eye_x_error, self.eye_motor_control[0],
+                transform=[[1. / self.angle_radius]],
+                synapse=self.tau)
+            nengo.Connection(
+                self.eye_y_error, self.eye_motor_control[1],
+                transform=[[1. / self.angle_radius]],
                 synapse=self.tau)
 
             nengo.Connection(self.eye_motor_control, self.eye_motor)
@@ -275,8 +321,11 @@ class Head(nengo.Network):
                 self.enable, self.eye_motor_control.neurons,
                 transform=[[-2.5]] * self.eye_motor_control.n_neurons)
             nengo.Connection(
-                self.enable, self.eye_controller.neurons,
-                transform=[[-2.5]] * self.eye_controller.n_neurons)
+                self.enable, self.eye_x_controller.neurons,
+                transform=[[-2.5]] * self.eye_x_controller.n_neurons)
+            nengo.Connection(
+                self.enable, self.eye_y_controller.neurons,
+                transform=[[-2.5]] * self.eye_y_controller.n_neurons)
             nengo.Connection(
                 self.enable, self.head_controller.neurons,
                 transform=[[-2.5]] * self.head_controller.n_neurons)
