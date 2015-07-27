@@ -22,6 +22,12 @@ def _beta_error(x):
            (target_beta - current_beta) ** 2
 
 
+def _finger_error(x):
+    target_angle, current_angle = x
+    return np.sign(target_angle - current_angle) * \
+           (target_angle - current_angle) ** 2
+
+
 _rotation_mat = np.asarray(np.eye(3))
 _position_vector = np.ones((3, 1))
 
@@ -374,8 +380,6 @@ class Arm(nengo.Network):
                              self.potential_target_angle,
                              function=lambda x: -np.sign(x[1]) * x[0])
 
-            # nengo.Connection(self.offset, self.potential_target_angle, transform=[[-1]], function=lambda x: np.sign(x))
-
             nengo.Connection(self.potential_target_angle, self.target_angle)
 
             self.shoulder_controller = nengo.Ensemble(2 * self.n_neurons, 2,
@@ -397,7 +401,6 @@ class Arm(nengo.Network):
                              transform=[[self.shoulder_sensitivity * self.tau]])
             nengo.Connection(self.alpha_angle, self.alpha_angle,
                              synapse=self.tau)
-
             # endregion
             # region Error between target and current beta angles
             """
@@ -475,7 +478,7 @@ class Arm(nengo.Network):
                                  np.abs(np.arctan2(x[1], x[0])) - np.pi / 2])
             nengo.Connection(self.beta_angle, self.elbow_controller[1])
 
-            self.elbow_error = nengo.Ensemble(self.n_neurons, 1,
+            self.elbow_error = nengo.Ensemble(6 * self.n_neurons, 1,
                                               radius=self.angle_radius)
             nengo.Connection(self.elbow_controller, self.elbow_error,
                              function=_beta_error)
@@ -493,10 +496,40 @@ class Arm(nengo.Network):
             # endregion
             # region Error between target and current finger angles
             # Finger error
+            self.finger = nengo.Ensemble(n_neurons=self.n_neurons, dimensions=1,
+                                         radius=self.angle_radius)
+            # The 'up' or extended position of the finger
+            self.finger_up = nengo.Node(output=np.pi / 2)
+            # The finger's target position
+            self.finger_target = nengo.Ensemble(n_neurons=self.n_neurons,
+                                                dimensions=1,
+                                                radius=self.angle_radius)
+            nengo.Connection(self.finger_up, self.finger_target)
+            # The ensemble that combines the target position for the finger
+            # and its current position
+            self.finger_controller = nengo.Ensemble(
+                n_neurons=2 * self.n_neurons, dimensions=2,
+                radius=self.angle_radius)
             self.finger_error = nengo.Ensemble(self.n_neurons, 1,
                                                radius=self.angle_radius)
-            # Elbow error inhibits the finger
 
+            nengo.Connection(self.finger_target, self.finger_controller[0])
+            nengo.Connection(self.finger, self.finger_controller[1])
+
+            nengo.Connection(self.finger_controller, self.finger_error,
+                             function=_finger_error)
+
+            # Feedback error
+
+            nengo.Connection(self.finger_error, self.finger,
+                             synapse=self.tau,
+                             transform=[[self.finger_sensitivity * self.tau]])
+            nengo.Connection(self.finger, self.finger,
+                             synapse=self.tau)
+
+            # Elbow error inhibits the finger
+            nengo.Connection(self.elbow_error, self.finger_target.neurons,
+                             transform=[[-3]] * self.finger_target.n_neurons)
             # endregion
             # region Upper arm movement
             self.shoulder_motor_control = nengo.Ensemble(
@@ -521,6 +554,13 @@ class Arm(nengo.Network):
                              transform=[[self.finger_sensitivity]],
                              synapse=0.1)
             nengo.Connection(self.finger_motor_control, self.finger_motor)
+
+            nengo.Connection(self.action_enable, self.finger_target.neurons,
+                             transform=[[-3]] * self.finger_target.n_neurons)
+            nengo.Connection(
+                self.action_enable,
+                self.finger_motor_control.neurons,
+                transform=[[-3]] * self.finger_motor_control.n_neurons)
             # endregion
             # region Inhibitory gating which enables or disables the module
             nengo.Connection(
