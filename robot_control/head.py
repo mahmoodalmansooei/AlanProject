@@ -129,8 +129,10 @@ class Head(nengo.Network):
         # endregion
         with self:
             # region input
-            self.target_position = nengo.networks.EnsembleArray(self.n_neurons,
-                                                                n_ensembles=2)
+            self.target_position = nengo.networks.EnsembleArray(
+                self.n_neurons,
+                n_ensembles=2,
+                radius=self.angle_radius)
             self.external_head_error = nengo.Ensemble(
                 self.n_neurons, dimensions=1,
                 radius=self.angle_radius)
@@ -168,7 +170,7 @@ class Head(nengo.Network):
                                              radius=self.angle_radius,
                                              label="Head error")
 
-            self.head_controller = nengo.Ensemble(n_neurons=2 * self.n_neurons,
+            self.head_controller = nengo.Ensemble(n_neurons=4 * self.n_neurons,
                                                   dimensions=2,
                                                   radius=self.angle_radius)
 
@@ -181,7 +183,7 @@ class Head(nengo.Network):
             nengo.Connection(pre=self.current_head,
                              post=self.head_controller[0])
             nengo.Connection(pre=self.target_position.output[0],
-                             post=self.head_controller[1], synapse=0.01)
+                             post=self.head_controller[1])
 
             nengo.Connection(pre=self.head_controller, post=self.head_error,
                              function=h_error)
