@@ -396,6 +396,8 @@ class Arm(nengo.Network):
 
             nengo.Connection(self.final_target.output[0:2],
                              self.final_target_XY)
+            nengo.Connection(self._elbow[0:2], self.final_target_XY,
+                             transform=[[-1, 0], [0, -1]])
 
             self.elbow_controller = nengo.Ensemble(8 * self.n_neurons,
                                                    dimensions=2,
