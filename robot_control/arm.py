@@ -4,28 +4,24 @@ import nengo
 import numpy as np
 import warnings
 from robot_utils.matrix_multiplication import MatrixMultiplication
-import math
 
-
-# TODO Consider error function using the difference of the slope of the
-# target and current
 
 def _alpha_error(x):
     target_alpha, current_alpha = x
     return np.sign(target_alpha - current_alpha) * \
-           (target_alpha - current_alpha) ** 2
+        (target_alpha - current_alpha) ** 2
 
 
 def _beta_error(x):
     target_beta, current_beta = x
     return np.sign(target_beta - current_beta) * \
-           (target_beta - current_beta) ** 2
+        (target_beta - current_beta) ** 2
 
 
 def _finger_error(x):
     target_angle, current_angle = x
     return np.sign(target_angle - current_angle) * \
-           (target_angle - current_angle) ** 2
+        (target_angle - current_angle) ** 2
 
 
 _rotation_mat = np.asarray(np.eye(3))
@@ -56,7 +52,7 @@ class Arm(nengo.Network):
             +   elbow in relation to the shoulder
             +   hand in relation to the elbow
         *   shoulder position
-        *   shoulder constant offset
+        *   shoulder constant offset (gamma)
 
         Assumptions:
         *   links between joints are straight and rigid
@@ -77,8 +73,6 @@ class Arm(nengo.Network):
         :type n_neurons:
         :param length_radius:
         :type length_radius:
-        :param angle_radius:
-        :type angle_radius:
         :param tau:
         :type tau:
         :param shoulder_sensitivity:
@@ -104,9 +98,6 @@ class Arm(nengo.Network):
         # TODO Need to have an option for left / right hand
 
         # TODO Use self.done
-
-        # TODO Use enums for referencing outputs (e.g. output[Enum.X] instead of
-        # output[1]
         super(Arm, self).__init__(label, seed, add_to_container)
         # region Variable assignment
         self.n_neurons = n_neurons
@@ -158,10 +149,6 @@ class Arm(nengo.Network):
         # endregion
         with self:
             # region input
-            # self.target_position = nengo.Ensemble(3 * self.n_neurons,
-            #                                       dimensions=3,
-            #                                       radius=self.length_radius)
-
             self.target_position = nengo.networks.EnsembleArray(
                 self.n_neurons, n_ensembles=3)
 
