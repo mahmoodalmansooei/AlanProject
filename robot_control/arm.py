@@ -310,54 +310,51 @@ class Arm(nengo.Network):
             self.target_angle = nengo.Ensemble(2 * self.n_neurons, 1,
                                                radius=self.angle_radius)
 
-            self.quadrant_identifier = nengo.Network(
-                label="Quadrant identifier", seed=self.seed)
-            with self.quadrant_identifier:
-                self.target_rotation = MatrixMultiplication(
-                    self.n_neurons, matrix_A=np.eye(2),
-                    matrix_B=np.zeros((2, 1)),
-                    radius=self.length_radius,
-                    seed=self.seed)
+            self.target_rotation = MatrixMultiplication(
+                self.n_neurons, matrix_A=np.eye(2),
+                matrix_B=np.zeros((2, 1)),
+                radius=self.length_radius,
+                seed=self.seed)
 
-                self._right_angle_rotation = nengo.Node(
-                    np.array([[0, 1], [-1, 0]]).ravel())
+            self._right_angle_rotation = nengo.Node(
+                np.array([[0, 1], [-1, 0]]).ravel())
 
-                nengo.Connection(self._right_angle_rotation,
-                                 self.target_rotation.in_A)
-                nengo.Connection(self.translated_target_position,
-                                 self.target_rotation.in_B)
+            nengo.Connection(self._right_angle_rotation,
+                             self.target_rotation.in_A)
+            nengo.Connection(self.translated_target_position,
+                             self.target_rotation.in_B)
 
-                self.faux_target_position = nengo.Ensemble(4 * self.n_neurons,
-                                                           2)
+            self.faux_target_position = nengo.Ensemble(4 * self.n_neurons,
+                                                       2)
 
-                nengo.Connection(self.target_rotation.output,
-                                 self.faux_target_position)
+            nengo.Connection(self.target_rotation.output,
+                             self.faux_target_position)
 
-                self.quadrant_selector = nengo.Ensemble(3 * self.n_neurons, 1)
+            self.quadrant_selector = nengo.Ensemble(3 * self.n_neurons, 1)
 
-                nengo.Connection(self.faux_target_position,
-                                 self.quadrant_selector,
-                                 function=lambda x: np.sign(
-                                     np.arctan2(x[1], x[0])))
+            nengo.Connection(self.faux_target_position,
+                             self.quadrant_selector,
+                             function=lambda x: np.sign(
+                                 np.arctan2(x[1], x[0])))
 
-                self.quadrant_based_action_selector = \
-                    nengo.networks.BasalGanglia(2, self.n_neurons)
+            self.quadrant_based_action_selector = \
+                nengo.networks.BasalGanglia(2, self.n_neurons)
 
-                nengo.Connection(self.quadrant_selector,
-                                 self.quadrant_based_action_selector.input[0])
-                nengo.Connection(self.quadrant_selector,
-                                 self.quadrant_based_action_selector.input[1],
-                                 transform=[[-1]])
+            nengo.Connection(self.quadrant_selector,
+                             self.quadrant_based_action_selector.input[0])
+            nengo.Connection(self.quadrant_selector,
+                             self.quadrant_based_action_selector.input[1],
+                             transform=[[-1]])
 
-                self._const_pi = nengo.Node(output=np.pi)
-                self.offset = nengo.Ensemble(self.n_neurons, 1,
-                                             radius=2 * self.angle_radius)
+            self._const_pi = nengo.Node(output=np.pi)
+            self.offset = nengo.Ensemble(self.n_neurons, 1,
+                                         radius=2 * self.angle_radius)
 
-                nengo.Connection(self.quadrant_based_action_selector.output[0],
-                                 self.offset.neurons,
-                                 transform=[[1]] * self.offset.n_neurons)
+            nengo.Connection(self.quadrant_based_action_selector.output[0],
+                             self.offset.neurons,
+                             transform=[[1]] * self.offset.n_neurons)
 
-                nengo.Connection(self._const_pi, self.offset)
+            nengo.Connection(self._const_pi, self.offset)
 
             self.potential_target_angle = nengo.Ensemble(
                 4 * n_neurons, 1,
