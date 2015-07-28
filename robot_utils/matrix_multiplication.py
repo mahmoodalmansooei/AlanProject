@@ -9,9 +9,13 @@ def product(x):
     return x[0] * x[1]
 
 
+_matrix = np.eye(3)
+_vector = np.zeros((3, 1))
+
+
 class MatrixMultiplication(nengo.Network):
-    def __init__(self, n_neurons, matrix_A, matrix_B, radius=1.0,
-                 label=None, seed=None,
+    def __init__(self, n_neurons, matrix_A=_matrix, matrix_B=_vector,
+                 radius=1.0, label=None, seed=None,
                  add_to_container=None, **ens_kwargs):
         super(MatrixMultiplication, self).__init__(label, seed,
                                                    add_to_container)
