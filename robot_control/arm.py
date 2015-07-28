@@ -309,13 +309,17 @@ class Arm(nengo.Network):
 
             self.target_angle = nengo.Ensemble(2 * self.n_neurons, 1,
                                                radius=self.angle_radius)
+            # region Quadrant computation
 
+            # Rotate point by 90 degrees clock-wise so as to have a
+            # way to determine the original quadrant based on arc-tangent sign
             self.target_rotation = MatrixMultiplication(
                 self.n_neurons, matrix_A=np.eye(2),
                 matrix_B=np.zeros((2, 1)),
                 radius=self.length_radius,
                 seed=self.seed)
 
+            # Rotation matrix for 2 coordinates
             self._right_angle_rotation = nengo.Node(
                 np.array([[0, 1], [-1, 0]]).ravel())
 
@@ -324,60 +328,69 @@ class Arm(nengo.Network):
             nengo.Connection(self.translated_target_position,
                              self.target_rotation.in_B)
 
-            self.faux_target_position = nengo.Ensemble(4 * self.n_neurons,
-                                                       2)
+            # Target position after rotation
+            self.faux_target_position = nengo.Ensemble(4 * self.n_neurons, 2)
 
             nengo.Connection(self.target_rotation.output,
                              self.faux_target_position)
 
             self.quadrant_selector = nengo.Ensemble(3 * self.n_neurons, 1)
 
+            # Compute the sign of the arc-tangent of the rotated target
             nengo.Connection(self.faux_target_position,
                              self.quadrant_selector,
                              function=lambda x: np.sign(
                                  np.arctan2(x[1], x[0])))
 
+            # Basal ganglia that selects the action to be taken based on whether
+            # the target is from quadrants {II, III} or {I , IV}
             self.quadrant_based_action_selector = \
                 nengo.networks.BasalGanglia(2, self.n_neurons)
 
+            # Selects first action if the sign is positive ({II, III})
             nengo.Connection(self.quadrant_selector,
                              self.quadrant_based_action_selector.input[0])
+            # Selects the second action if the sign is negative ({I, IV})
             nengo.Connection(self.quadrant_selector,
                              self.quadrant_based_action_selector.input[1],
                              transform=[[-1]])
 
-            self._const_pi = nengo.Node(output=np.pi)
-            self.offset = nengo.Ensemble(self.n_neurons, 1,
-                                         radius=2 * self.angle_radius)
+            # Use a thalamus to construct the rotation matrix for the target
+            self.quadrant_based_rotation = nengo.networks.Thalamus(2)
 
-            nengo.Connection(self.quadrant_based_action_selector.output[0],
-                             self.offset.neurons,
-                             transform=[[1]] * self.offset.n_neurons)
+            nengo.Connection(self.quadrant_based_action_selector.output,
+                             self.quadrant_based_rotation.input)
 
-            nengo.Connection(self._const_pi, self.offset)
+            # Target is rotated either by 180 degrees or by 0 degrees
+            self.final_target_rotation = MatrixMultiplication(
+                self.n_neurons, matrix_A=np.eye(2), matrix_B=np.zeros((2, 1)))
 
-            self.potential_target_angle = nengo.Ensemble(
-                4 * n_neurons, 1,
-                radius=2 * self.angle_radius)
+            # Rotation by 180 degrees if first action selected
+            nengo.Connection(self.quadrant_based_rotation.output[0],
+                             self.final_target_rotation.in_A,
+                             transform=[[-1], [0], [0], [-1]])
+            # Rotation by 0 degrees if second action selected
+            nengo.Connection(self.quadrant_based_rotation.output[1],
+                             self.final_target_rotation.in_A,
+                             transform=[[1], [0], [0], [1]])
 
-            self.directional_offset = nengo.Ensemble(
-                6 * self.n_neurons, 2,
-                radius=2 * self.angle_radius)
-            nengo.Connection(self.offset, self.directional_offset[0])
-
+            # Current translated target position
             nengo.Connection(self.translated_target_position,
-                             self.directional_offset[1],
+                             self.final_target_rotation.in_B)
+
+            # Ensemble so that I can apply arctan2 function (doesn't work on
+            # passthrough nodes
+            self.shoulder_target_position = nengo.Ensemble(
+                6 * self.n_neurons, 2)
+
+            # Synapse has a low-pass filter of tau for stability (not a jerky
+            # movement when changing targets)
+            nengo.Connection(self.final_target_rotation.output,
+                             self.shoulder_target_position, synapse=self.tau)
+
+            # Target angle is finally computed
+            nengo.Connection(self.shoulder_target_position, self.target_angle,
                              function=lambda x: np.arctan2(x[1], x[0]))
-
-            nengo.Connection(self.translated_target_position,
-                             self.potential_target_angle,
-                             function=lambda x: np.arctan2(x[1], x[0]))
-
-            nengo.Connection(self.directional_offset,
-                             self.potential_target_angle,
-                             function=lambda x: -np.sign(x[1]) * x[0])
-
-            nengo.Connection(self.potential_target_angle, self.target_angle)
 
             self.shoulder_controller = nengo.Ensemble(2 * self.n_neurons, 2,
                                                       radius=self.angle_radius)
