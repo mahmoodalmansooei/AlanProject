@@ -34,10 +34,9 @@ _position_vector = np.ones((3, 1))
 
 class Arm(nengo.Network):
     def __init__(self, shoulder_position, elbow_position, hand_position, gamma,
-                 n_neurons=100, length_radius=1.7,
-                 angle_radius=1.57, tau=0.2, shoulder_sensitivity=1.3,
-                 elbow_sensitivity=1.0, finger_sensitivity=2.0,
-                 label=None, seed=None,
+                 n_neurons=100, length_radius=1.7, tau=0.2,
+                 shoulder_sensitivity=1.3, elbow_sensitivity=1.0,
+                 finger_sensitivity=2.0, label=None, seed=None,
                  add_to_container=None):
         """
         Class that represents a robotic arm with 3 degrees of freedom moving in
@@ -112,7 +111,7 @@ class Arm(nengo.Network):
         # region Variable assignment
         self.n_neurons = n_neurons
         self.length_radius = length_radius
-        self.angle_radius = angle_radius
+        self.angle_radius = 1.57
         self.tau = tau
         self.shoulder_sensitivity = shoulder_sensitivity
         self.elbow_sensitivity = elbow_sensitivity
