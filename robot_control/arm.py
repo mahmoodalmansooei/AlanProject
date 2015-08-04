@@ -477,7 +477,7 @@ class Arm(nengo.Network):
 
             nengo.Connection(self.final_target_XY, self.elbow_controller[0],
                              function=lambda x: [
-                                 np.abs(np.arctan2(x[1], x[0])) - np.pi / 2],
+                                 np.pi / 2 - np.arctan2(x[1], x[0])],
                              synapse=self.tau)
             nengo.Connection(self.beta_angle, self.elbow_controller[1])
 
