@@ -312,9 +312,9 @@ class Arm(nengo.Network):
 
             # Hacky fix to some arctan problems: rotate by 80 degrees
             self._right_angle_rotation = nengo.Node(
-                np.array([[np.cos(np.radians(85)), np.sin(np.radians(85))],
-                          [-np.sin(np.radians(85)),
-                           np.cos(np.radians(85))]]).ravel())
+                np.array([[np.cos(np.radians(80)), np.sin(np.radians(80))],
+                          [-np.sin(np.radians(80)),
+                           np.cos(np.radians(80))]]).ravel())
 
             nengo.Connection(self._right_angle_rotation,
                              self.target_rotation.in_A)
@@ -325,15 +325,15 @@ class Arm(nengo.Network):
             self.faux_target_position = nengo.Ensemble(4 * self.n_neurons, 2)
 
             nengo.Connection(self.target_rotation.output,
-                             self.faux_target_position)
+                             self.faux_target_position,
+                             transform=[[1.7, 0], [0, 1.7]])
 
             self.quadrant_selector = nengo.Ensemble(3 * self.n_neurons, 1)
 
             # Compute the sign of the arc-tangent of the rotated target
             nengo.Connection(self.faux_target_position,
                              self.quadrant_selector,
-                             function=lambda x: np.sign(
-                                 np.arctan2(x[1], x[0])))
+                             function=lambda x: np.sign(np.arctan2(x[1], x[0])))
 
             # Basal ganglia that selects the action to be taken based on whether
             # the target is from quadrants {II, III} or {I , IV}
@@ -476,7 +476,9 @@ class Arm(nengo.Network):
                 seed=self.seed)
 
             self._beta_rotation = nengo.Node(
-                np.array([[0, 1], [-1, 0]]).ravel())
+                np.array([[np.cos(np.radians(80)), np.sin(np.radians(80))],
+                          [-np.sin(np.radians(80)),
+                           np.cos(np.radians(80))]]).ravel())
 
             nengo.Connection(self.final_target.output[0:2],
                              self.final_target_XY)
@@ -493,7 +495,7 @@ class Arm(nengo.Network):
                                                    dimensions=2,
                                                    radius=self.angle_radius)
 
-            self.beta_target_position = nengo.Ensemble(4 * self.n_neurons, 2)
+            self.beta_target_position = nengo.Ensemble(8 * self.n_neurons, 2)
 
             nengo.Connection(self.beta_target_rotation.output,
                              self.beta_target_position)
