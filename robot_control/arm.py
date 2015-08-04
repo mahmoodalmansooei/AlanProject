@@ -248,9 +248,10 @@ class Arm(nengo.Network):
             self.beta_angle = nengo.Ensemble(n_neurons=self.n_neurons,
                                              dimensions=1,
                                              radius=self.angle_radius)
-            self.elbow_Rz = nengo.networks.EnsembleArray(self.n_neurons,
-                                                         _rotation_mat.size,
-                                                         radius=self.angle_radius)
+            self.elbow_Rz = nengo.networks.EnsembleArray(
+                self.n_neurons,
+                _rotation_mat.size,
+                radius=self.angle_radius)
 
             nengo.Connection(self.beta_angle, self.elbow_Rz.input,
                              function=lambda x: [np.cos(x), -np.sin(x), 0,
@@ -464,20 +465,42 @@ class Arm(nengo.Network):
 
             self.final_target_XY = nengo.Ensemble(8 * self.n_neurons,
                                                   dimensions=2,
-                                                  radius=2 * self.length_radius)
+                                                  radius=self.length_radius)
+
+            # Rotate final target xy position by 90 degrees
+
+            self.beta_target_rotation = MatrixMultiplication(
+                2 * self.n_neurons, matrix_A=np.eye(2),
+                matrix_B=np.zeros((2, 1)),
+                radius=self.length_radius,
+                seed=self.seed)
+
+            self._beta_rotation = nengo.Node(
+                np.array([[0, 1], [-1, 0]]).ravel())
 
             nengo.Connection(self.final_target.output[0:2],
                              self.final_target_XY)
             nengo.Connection(self._elbow[0:2], self.final_target_XY,
                              transform=[[-1, 0], [0, -1]])
 
+            nengo.Connection(self._beta_rotation,
+                             self.beta_target_rotation.in_A)
+            nengo.Connection(self.final_target_XY,
+                             self.beta_target_rotation.in_B,
+                             transform=[[1.7, 0], [0, 1.7]])
+
             self.elbow_controller = nengo.Ensemble(8 * self.n_neurons,
                                                    dimensions=2,
                                                    radius=self.angle_radius)
 
-            nengo.Connection(self.final_target_XY, self.elbow_controller[0],
-                             function=lambda x: [
-                                 np.pi / 2 - np.arctan2(x[1], x[0])],
+            self.beta_target_position = nengo.Ensemble(4 * self.n_neurons, 2)
+
+            nengo.Connection(self.beta_target_rotation.output,
+                             self.beta_target_position)
+
+            nengo.Connection(self.beta_target_position,
+                             self.elbow_controller[0],
+                             function=lambda x: [np.arctan2(x[1], x[0])],
                              synapse=self.tau)
             nengo.Connection(self.beta_angle, self.elbow_controller[1])
 
