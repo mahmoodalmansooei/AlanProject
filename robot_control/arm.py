@@ -9,19 +9,19 @@ from robot_utils.matrix_multiplication import MatrixMultiplication
 def _alpha_error(x):
     target_alpha, current_alpha = x
     return np.sign(target_alpha - current_alpha) * \
-        (target_alpha - current_alpha) ** 2
+           (target_alpha - current_alpha) ** 2
 
 
 def _beta_error(x):
     target_beta, current_beta = x
     return np.sign(target_beta - current_beta) * \
-        (target_beta - current_beta) ** 2
+           (target_beta - current_beta) ** 2
 
 
 def _finger_error(x):
     target_angle, current_angle = x
     return np.sign(target_angle - current_angle) * \
-        (target_angle - current_angle) ** 2
+           (target_angle - current_angle) ** 2
 
 
 _rotation_mat = np.asarray(np.eye(3))
@@ -31,8 +31,8 @@ _position_vector = np.ones((3, 1))
 class Arm(nengo.Network):
     def __init__(self, shoulder_position, elbow_position, hand_position, gamma,
                  n_neurons=100, length_radius=1.7, tau=0.2,
-                 shoulder_sensitivity=1.3, elbow_sensitivity=1.0,
-                 finger_sensitivity=2.0, label=None, seed=None,
+                 shoulder_sensitivity=2., elbow_sensitivity=2.,
+                 finger_sensitivity=1.0, label=None, seed=None,
                  add_to_container=None):
         """
         Class that represents a robotic arm with 3 degrees of freedom moving in
@@ -295,6 +295,8 @@ class Arm(nengo.Network):
 
             self.target_angle = nengo.Ensemble(2 * self.n_neurons, 1,
                                                radius=self.angle_radius)
+
+            # endregion
             # region Quadrant computation
 
             # Rotate point by 90 degrees clock-wise so as to have a
@@ -306,8 +308,12 @@ class Arm(nengo.Network):
                 seed=self.seed)
 
             # Rotation matrix for 2 coordinates
+
+            # Hacky fix to some arctan problems: rotate by 80 degrees
             self._right_angle_rotation = nengo.Node(
-                np.array([[0, 1], [-1, 0]]).ravel())
+                np.array([[np.cos(np.radians(85)), np.sin(np.radians(85))],
+                          [-np.sin(np.radians(85)),
+                           np.cos(np.radians(85))]]).ravel())
 
             nengo.Connection(self._right_angle_rotation,
                              self.target_rotation.in_A)
@@ -378,7 +384,7 @@ class Arm(nengo.Network):
             nengo.Connection(self.shoulder_target_position, self.target_angle,
                              function=lambda x: np.arctan2(x[1], x[0]))
 
-            self.shoulder_controller = nengo.Ensemble(2 * self.n_neurons, 2,
+            self.shoulder_controller = nengo.Ensemble(4 * self.n_neurons, 2,
                                                       radius=self.angle_radius)
 
             nengo.Connection(self.target_angle, self.shoulder_controller[0])
@@ -448,7 +454,7 @@ class Arm(nengo.Network):
             nengo.Connection(self.inv_shoulder_Ry.output,
                              self.inv_rotations.in_B)
 
-            self.final_target = MatrixMultiplication(self.n_neurons,
+            self.final_target = MatrixMultiplication(2 * self.n_neurons,
                                                      radius=self.angle_radius)
 
             nengo.Connection(self.inv_rotations.output, self.final_target.in_A)
@@ -471,7 +477,8 @@ class Arm(nengo.Network):
 
             nengo.Connection(self.final_target_XY, self.elbow_controller[0],
                              function=lambda x: [
-                                 np.abs(np.arctan2(x[1], x[0])) - np.pi / 2])
+                                 np.abs(np.arctan2(x[1], x[0])) - np.pi / 2],
+                             synapse=self.tau)
             nengo.Connection(self.beta_angle, self.elbow_controller[1])
 
             self.elbow_error = nengo.Ensemble(6 * self.n_neurons, 1,
@@ -509,7 +516,8 @@ class Arm(nengo.Network):
             self.finger_error = nengo.Ensemble(self.n_neurons, 1,
                                                radius=self.angle_radius)
 
-            nengo.Connection(self.finger_target, self.finger_controller[0])
+            nengo.Connection(self.finger_target, self.finger_controller[0],
+                             synapse=self.tau)
             nengo.Connection(self.finger, self.finger_controller[1])
 
             nengo.Connection(self.finger_controller, self.finger_error,
@@ -548,15 +556,11 @@ class Arm(nengo.Network):
                 n_neurons=self.n_neurons, dimensions=1, radius=1)
             nengo.Connection(self.finger_error, self.finger_motor_control,
                              transform=[[self.finger_sensitivity]],
-                             synapse=0.1)
+                             synapse=self.tau)
             nengo.Connection(self.finger_motor_control, self.finger_motor)
 
             nengo.Connection(self.action_enable, self.finger_target.neurons,
                              transform=[[-3]] * self.finger_target.n_neurons)
-            nengo.Connection(
-                self.action_enable,
-                self.finger_motor_control.neurons,
-                transform=[[-3]] * self.finger_motor_control.n_neurons)
             # endregion
             # region Inhibitory gating which enables or disables the module
             nengo.Connection(
