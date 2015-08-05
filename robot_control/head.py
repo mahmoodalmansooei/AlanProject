@@ -99,8 +99,6 @@ class Head(nengo.Network):
 
         # TODO Connect external error to motor/sensor (they must decay
         # TODO realistically if not updated)
-
-        # TODO Use self.done
         super(Head, self).__init__(label, seed, add_to_container)
         # region Variable assignment
         self.n_neurons = n_neurons
