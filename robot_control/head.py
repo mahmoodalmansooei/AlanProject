@@ -101,8 +101,6 @@ class Head(nengo.Network):
         # TODO realistically if not updated)
 
         # TODO Use self.done
-
-        # TODO Add speech functionality
         super(Head, self).__init__(label, seed, add_to_container)
         # region Variable assignment
         self.n_neurons = n_neurons
@@ -334,4 +332,15 @@ class Head(nengo.Network):
             nengo.Connection(
                 self.enable, self.lip_controller.neurons,
                 transform=[[-2.5]] * self.lip_controller.n_neurons)
+            # endregion
+
+            # region Signal when done
+            self.one = nengo.Node(1)
+            nengo.Connection(self.one, self.done)
+            self.absolute_error = nengo.Ensemble(self.n_neurons, 1)
+            nengo.Connection(self.head_error, self.absolute_error,
+                             function=lambda x: 2 * x**2,
+                             synapse=self.tau)
+            nengo.Connection(self.absolute_error, self.done.neurons,
+                             transform=[[-3.]] * self.done.n_neurons)
             # endregion
