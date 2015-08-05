@@ -8,7 +8,7 @@ from action import ActionSelectionExecution
 
 class Robot(nengo.Network):
     def __init__(self, n_neurons=100, radius=1.7,
-                 idle_position=np.asarray([[.3, .5, -.7]]),
+                 idle_position=np.asarray([[.4, .5, -.7]]),
                  gamma=0, shoulder_width=.3, neck_length=.2,
                  upper_arm_length=.5, lower_arm_length=.5, lip_distance=.2,
                  tau=0.2,
@@ -70,6 +70,11 @@ class Robot(nengo.Network):
             nengo.Connection(self.right_arm.shoulder_motor, self.shoulder_motor)
             nengo.Connection(self.right_arm.elbow_motor, self.elbow_motor)
             nengo.Connection(self.right_arm.finger_motor, self.finger_motor)
+
+            # Control signals
+            self.done = nengo.Ensemble(self.n_neurons, 1)
+            nengo.Connection(self.head.done, self.done, transform=[[.5]])
+            nengo.Connection(self.right_arm.done, self.done, transform=[[.5]])
 
 
 if __name__ == "__main__":
