@@ -161,7 +161,7 @@ class Head(nengo.Network):
             # endregion
             # region Head rotation
             # Error computation
-            self.head_error = nengo.Ensemble(n_neurons=self.n_neurons,
+            self.head_error = nengo.Ensemble(n_neurons=4 * self.n_neurons,
                                              dimensions=1,
                                              radius=self.angle_radius,
                                              label="Head error")
