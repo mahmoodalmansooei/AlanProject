@@ -93,8 +93,6 @@ class Arm(nengo.Network):
         # TODO Connect external error to motor/sensor (they must decay
         # TODO realistically if not updated)
 
-        # TODO What position should the arm be in by default (idle position)
-
         # TODO Need to have an option for left / right hand
 
         # TODO Use self.done
@@ -605,6 +603,22 @@ class Arm(nengo.Network):
             nengo.Connection(
                 self.enable, self.elbow_controller.neurons,
                 transform=[[-2.5]] * self.elbow_controller.n_neurons)
+            # endregion
+            # region Signal when done
+            self.one = nengo.Node(1)
+            nengo.Connection(self.one, self.done)
+            self.absolute_error = nengo.Ensemble(self.n_neurons, 1)
+            nengo.Connection(self.shoulder_error, self.absolute_error,
+                             function=lambda x: x ** 2,
+                             synapse=self.tau)
+            nengo.Connection(self.elbow_error, self.absolute_error,
+                             function=lambda x: x ** 2,
+                             synapse=self.tau)
+            nengo.Connection(self.finger_error, self.absolute_error,
+                             function=lambda x: x ** 2,
+                             synapse=self.tau)
+            nengo.Connection(self.absolute_error, self.done.neurons,
+                             transform=[[-3.]] * self.done.n_neurons)
             # endregion
 
 
