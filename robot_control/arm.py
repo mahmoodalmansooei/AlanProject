@@ -295,7 +295,6 @@ class Arm(nengo.Network):
             self.target_angle = nengo.Ensemble(2 * self.n_neurons, 1,
                                                radius=self.angle_radius)
 
-            # endregion
             # region Quadrant computation
 
             # Rotate point by 90 degrees clock-wise so as to have a
@@ -364,7 +363,7 @@ class Arm(nengo.Network):
             nengo.Connection(self.quadrant_based_rotation.output[1],
                              self.final_target_rotation.in_A,
                              transform=[[1], [0], [0], [1]])
-
+            # endregion
             # Current translated target position
             nengo.Connection(self.translated_target_position,
                              self.final_target_rotation.in_B)
@@ -380,8 +379,58 @@ class Arm(nengo.Network):
                              self.shoulder_target_position, synapse=self.tau)
 
             # Target angle is finally computed
-            nengo.Connection(self.shoulder_target_position, self.target_angle,
+            # If target has the same X as the shoulder then default to -pi/2
+            # angle for the shoulder
+            # else use the computed value
+            self.target_x = nengo.Ensemble(self.n_neurons, 1)
+            nengo.Connection(self.target_position.output[0], self.target_x)
+            self.x_sign = nengo.Ensemble(self.n_neurons, 1)
+            nengo.Connection(self.target_x, self.x_sign, function=np.sign)
+            self.absolute_difference = nengo.Ensemble(self.n_neurons, 1)
+            nengo.Connection(self.x_sign, self.absolute_difference,
+                             function=np.abs)
+
+            self.target_position_selector = nengo.networks.BasalGanglia(
+                dimensions=2, n_neurons_per_ensemble=self.n_neurons,
+                net=nengo.Network("Shoulder target angle selector"))
+
+            nengo.Connection(self.absolute_difference,
+                             self.target_position_selector.input[0])
+            nengo.Connection(self.absolute_difference,
+                             self.target_position_selector.input[1],
+                             function=lambda x: 1 - x)
+
+            self.target_position_computer = nengo.networks.Thalamus(
+                dimensions=2, n_neurons_per_ensemble=2 * self.n_neurons,
+                net=nengo.Network("Shoulder target angle computer"))
+
+            nengo.Connection(self.target_position_selector.output,
+                             self.target_position_computer.input)
+
+            self.default_angle = nengo.Node(output=-np.pi/2)
+
+            self.default_mm = nengo.Ensemble(3 * self.n_neurons, 2,
+                                             radius=self.angle_radius)
+
+            nengo.Connection(self.default_angle, self.default_mm[0])
+            nengo.Connection(self.target_position_computer.output[0],
+                             self.default_mm[1])
+
+            self.compute_target_mm = nengo.Ensemble(3 * self.n_neurons, 2,
+                                                    radius=self.angle_radius)
+
+            nengo.Connection(self.shoulder_target_position,
+                             self.compute_target_mm[0],
                              function=lambda x: np.arctan2(x[1], x[0]))
+            nengo.Connection(self.target_position_computer.output[1],
+                             self.compute_target_mm[1])
+
+            nengo.Connection(self.default_mm, self.target_angle,
+                             synapse=self.tau,
+                             function=lambda x: x[0] * x[1])
+            nengo.Connection(self.compute_target_mm, self.target_angle,
+                             synapse=self.tau,
+                             function=lambda x: x[0] * x[1])
 
             self.shoulder_controller = nengo.Ensemble(4 * self.n_neurons, 2,
                                                       radius=self.angle_radius)
