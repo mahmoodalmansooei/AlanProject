@@ -304,8 +304,6 @@ class Arm(nengo.Network):
                 seed=self.seed)
 
             # Rotation matrix for 2 coordinates
-
-            # Hacky fix to some arctan problems: rotate by 80 degrees
             self._right_angle_rotation = nengo.Node(
                 np.array([[0, 1],
                           [-1, 0]]).ravel())
@@ -521,12 +519,6 @@ class Arm(nengo.Network):
                 matrix_B=np.zeros((2, 1)),
                 radius=self.length_radius,
                 seed=self.seed)
-
-            # Check this
-            self._beta_rotation = nengo.Node(
-                np.array([[np.cos(np.radians(80)), np.sin(np.radians(80))],
-                          [-np.sin(np.radians(80)),
-                           np.cos(np.radians(80))]]).ravel())
 
             nengo.Connection(self.final_target.output[0:2],
                              self.final_target_XY)
