@@ -32,7 +32,7 @@ class Arm(nengo.Network):
     def __init__(self, shoulder_position, elbow_position, hand_position, gamma,
                  n_neurons=100, length_radius=1.7, tau=0.2,
                  shoulder_sensitivity=2., elbow_sensitivity=2.,
-                 finger_sensitivity=1.0, label=None, seed=None,
+                 finger_sensitivity=2.0, label=None, seed=None,
                  add_to_container=None):
         """
         Class that represents a robotic arm with 3 degrees of freedom moving in
@@ -94,8 +94,6 @@ class Arm(nengo.Network):
         # TODO realistically if not updated)
 
         # TODO Need to have an option for left / right hand
-
-        # TODO Use self.done
         super(Arm, self).__init__(label, seed, add_to_container)
         # region Variable assignment
         self.n_neurons = n_neurons
@@ -309,9 +307,8 @@ class Arm(nengo.Network):
 
             # Hacky fix to some arctan problems: rotate by 80 degrees
             self._right_angle_rotation = nengo.Node(
-                np.array([[np.cos(np.radians(80)), np.sin(np.radians(80))],
-                          [-np.sin(np.radians(80)),
-                           np.cos(np.radians(80))]]).ravel())
+                np.array([[0, 1],
+                          [-1, 0]]).ravel())
 
             nengo.Connection(self._right_angle_rotation,
                              self.target_rotation.in_A)
@@ -382,17 +379,19 @@ class Arm(nengo.Network):
             # If target has the same X as the shoulder then default to -pi/2
             # angle for the shoulder
             # else use the computed value
-            self.target_x = nengo.Ensemble(self.n_neurons, 1)
+            self.target_x = nengo.Ensemble(3 * self.n_neurons, 1)
             nengo.Connection(self.target_position.output[0], self.target_x)
-            self.x_sign = nengo.Ensemble(self.n_neurons, 1)
+            nengo.Connection(self._shoulder[0], self.target_x, transform=[[-1]])
+            self.x_sign = nengo.Ensemble(3 * self.n_neurons, 1)
             nengo.Connection(self.target_x, self.x_sign, function=np.sign)
-            self.absolute_difference = nengo.Ensemble(self.n_neurons, 1)
+            self.absolute_difference = nengo.Ensemble(3 * self.n_neurons, 1)
             nengo.Connection(self.x_sign, self.absolute_difference,
                              function=np.abs)
 
             self.target_position_selector = nengo.networks.BasalGanglia(
                 dimensions=2, n_neurons_per_ensemble=self.n_neurons,
-                net=nengo.Network("Shoulder target angle selector"))
+                net=nengo.Network("Shoulder target angle selector"),
+                output_weight=-4)
 
             nengo.Connection(self.absolute_difference,
                              self.target_position_selector.input[0])
@@ -407,13 +406,13 @@ class Arm(nengo.Network):
             nengo.Connection(self.target_position_selector.output,
                              self.target_position_computer.input)
 
-            self.default_angle = nengo.Node(output=-np.pi/2)
+            self.default_angle = nengo.Node(output=-np.pi / 2)
 
             self.default_mm = nengo.Ensemble(3 * self.n_neurons, 2,
                                              radius=self.angle_radius)
 
             nengo.Connection(self.default_angle, self.default_mm[0])
-            nengo.Connection(self.target_position_computer.output[0],
+            nengo.Connection(self.target_position_computer.output[1],
                              self.default_mm[1])
 
             self.compute_target_mm = nengo.Ensemble(3 * self.n_neurons, 2,
@@ -421,8 +420,9 @@ class Arm(nengo.Network):
 
             nengo.Connection(self.shoulder_target_position,
                              self.compute_target_mm[0],
-                             function=lambda x: np.arctan2(x[1], x[0]))
-            nengo.Connection(self.target_position_computer.output[1],
+                             function=lambda x: np.arctan2(x[1], x[0]),
+                             synapse=self.tau)
+            nengo.Connection(self.target_position_computer.output[0],
                              self.compute_target_mm[1])
 
             nengo.Connection(self.default_mm, self.target_angle,
@@ -522,6 +522,7 @@ class Arm(nengo.Network):
                 radius=self.length_radius,
                 seed=self.seed)
 
+            # Check this
             self._beta_rotation = nengo.Node(
                 np.array([[np.cos(np.radians(80)), np.sin(np.radians(80))],
                           [-np.sin(np.radians(80)),
@@ -532,7 +533,7 @@ class Arm(nengo.Network):
             nengo.Connection(self._elbow[0:2], self.final_target_XY,
                              transform=[[-1, 0], [0, -1]])
 
-            nengo.Connection(self._beta_rotation,
+            nengo.Connection(self._right_angle_rotation,
                              self.beta_target_rotation.in_A)
             nengo.Connection(self.final_target_XY,
                              self.beta_target_rotation.in_B,
