@@ -11,8 +11,8 @@ model = nengo.Network("Arm movement test", seed=len("SpiNNaker"))
 
 # l = 0.2
 # h = 0.2
-l = .5
-h = .5
+l = .3
+h = .2
 
 upper_length = .5
 lower_length = .5

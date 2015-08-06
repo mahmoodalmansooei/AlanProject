@@ -14,21 +14,6 @@ Action selection achieved by using a basal ganglia implementation
  |-Talk to approaching human
 """
 
-
-class ActionIterator(object):
-    def __init__(self, dimensions):
-        self.actions = np.ones(dimensions) * 0.1
-
-    def step(self, t):
-        # one action at time dominates
-        dominate = int(t % 3)
-        self.actions[:] = 0.1
-        self.actions[dominate] = 0.8
-        return self.actions
-
-
-action_iterator = ActionIterator(dimensions=3)
-
 model = nengo.Network("Action selector")
 
 with model:

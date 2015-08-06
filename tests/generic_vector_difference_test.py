@@ -1,9 +1,8 @@
 __author__ = 'Petrut Bogdan'
 
 import nengo
-from nengo import Network
-import numpy as np
-from robot_models.vector_difference import VectorDifference
+
+from robot_utils.vector_difference import VectorDifference
 
 myseed = len("SpiNNaker")
 model = nengo.Network("Vector difference test", seed=myseed)
