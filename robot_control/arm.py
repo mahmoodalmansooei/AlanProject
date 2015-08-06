@@ -584,7 +584,7 @@ class Arm(nengo.Network):
             # The ensemble that combines the target position for the finger
             # and its current position
             self.finger_controller = nengo.Ensemble(
-                n_neurons=2 * self.n_neurons, dimensions=2,
+                n_neurons=4 * self.n_neurons, dimensions=2,
                 radius=self.angle_radius)
             self.finger_error = nengo.Ensemble(self.n_neurons, 1,
                                                radius=self.angle_radius)
