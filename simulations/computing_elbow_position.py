@@ -1,3 +1,5 @@
+from robot_utils.matrix_multiplication import MatrixMultiplication
+
 __author__ = 'Petrut Bogdan'
 
 """
@@ -23,12 +25,13 @@ lower_length = 0.35
 # Population radii should be computed based on the lengths involved
 radius = l + h + upper_length + lower_length
 
-alpha = 1.
-gamma = 0.1
+alpha = 0
+gamma = 0
 
 beta = 1.
+myseed = len("SpiNNaker")
 
-model = nengo.Network("Computing shoulder position")
+model = nengo.Network("Computing shoulder position", seed=myseed)
 
 position_mat = np.asarray([0, 0, 0])
 
@@ -36,11 +39,11 @@ shoulder_position_mat = np.asarray([l, 0, -h])
 
 rotation_mat = np.asarray(np.eye(3))
 
-elbow_position_mat = np.asarray([[0, upper_length, 0]])
+elbow_position_mat = np.asarray([[0, 1, 0]])
 
 # bottom_row = [0, 0, 0, 1]
 
-N = 50
+N = 100
 
 with model:
     # Angle values are in radians by default
@@ -59,14 +62,14 @@ with model:
     # Rotation matrices
     Rx = nengo.networks.EnsembleArray(N, rotation_mat.size)
 
-    nengo.Connection(shoulder_angles[0], Rx.input,
+    nengo.Connection(shoulder_angles[1], Rx.input,
                      function=lambda x: [1, 0, 0,
                                          0, np.cos(x), -np.sin(x),
                                          0, np.sin(x), np.cos(x)])
 
     Ry = nengo.networks.EnsembleArray(N, rotation_mat.size)
 
-    nengo.Connection(shoulder_angles[1], Ry.input,
+    nengo.Connection(shoulder_angles[0], Ry.input,
                      function=lambda x: [np.cos(x), 0, np.sin(x),
                                          0, 1, 0,
                                          -np.sin(x), 0, np.cos(x)])
@@ -104,6 +107,7 @@ with model:
 
 def product(x):
     return x[0] * x[1]
+
 
 # The mapping for this transformation is much easier, since we want to
 # combine D2 pairs of elements (we sum D2 products together)
@@ -145,19 +149,62 @@ with model:
         N, n_ensembles=elbow_position_mat.shape[0] * rotation_mat.shape[1],
         radius=radius)
 
-transformElbow2 = np.zeros((elbow_in_upper_arm_space.dimensions, rotation_mat.size))
+transformElbow2 = np.zeros(
+    (elbow_in_upper_arm_space.dimensions, rotation_mat.size))
 for i in range(rotation_mat.size):
     transformElbow2[i // rotation_mat.shape[0]][i] = 1
 
-with model: # TODO Check that this outputs correct values
+with model:  # TODO Check that this outputs correct values
     prod2 = elbow_combo.add_output("product", product)
-    nengo.Connection(prod2, elbow_in_upper_arm_space.input, transform=transformElbow2)
+    nengo.Connection(prod2, elbow_in_upper_arm_space.input,
+                     transform=transformElbow2)
 
 
 # World space position computation
 
 with model:
-    elbow_in_world_space = nengo.networks.EnsembleArray(N, n_ensembles=3, radius=2 * radius)
+    elbow_in_world_space = nengo.networks.EnsembleArray(N, n_ensembles=3,
+                                                        radius=2 * radius)
 
-    nengo.Connection(elbow_in_upper_arm_space.output, elbow_in_world_space.input)
+    nengo.Connection(elbow_in_upper_arm_space.output,
+                     elbow_in_world_space.input)
     nengo.Connection(S.output, elbow_in_world_space.input)
+
+
+# NEW AND "IMPROVED"
+with model:
+    _rotation_mat = np.asarray(np.eye(3))
+    angle_radius = 1.6
+
+    ERx = nengo.networks.EnsembleArray(2 * N,
+                                       _rotation_mat.size)
+
+    nengo.Connection(shoulder_angles[0], ERx.input,
+                     function=lambda x: [1, 0, 0,
+                                         0, np.cos(x), -np.sin(x),
+                                         0, np.sin(x), np.cos(x)])
+
+    ERy = nengo.networks.EnsembleArray(2 * N,
+                                       _rotation_mat.size)
+
+    nengo.Connection(shoulder_angles[1], ERy.input,
+                     function=lambda x: [np.cos(x), 0, np.sin(x),
+                                         0, 1, 0,
+                                         -np.sin(x), 0, np.cos(x)])
+
+    elbow_rotation = MatrixMultiplication(
+        n_neurons=2 * N, matrix_A=_rotation_mat,
+        matrix_B=_rotation_mat,
+        seed=myseed)
+
+    nengo.Connection(ERx.output, elbow_rotation.in_B)
+    nengo.Connection(ERy.output, elbow_rotation.in_A)
+
+    elbow_position_computer = MatrixMultiplication(
+        n_neurons=2 * N,
+        seed=myseed)
+
+    nengo.Connection(elbow_rotation.output,
+                     elbow_position_computer.in_A)
+    nengo.Connection(elbow,
+                     elbow_position_computer.in_B)
