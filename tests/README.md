@@ -1,7 +1,10 @@
 #Tests folder
-This folder contains small neural simulations to check if small bits of functionality can be achieved.
+This folder contains small neural simulations to check if small bits of functionality behave as 
+expected.
 
-Small snippets of code include:
+Small tests cover:
 
-+   The signum function
-+   Setting up and initial value for an ensemble
++   Right arm functionality
++   Head functionality
++   Action selection and execution functionality
++   Integrated robot functionality

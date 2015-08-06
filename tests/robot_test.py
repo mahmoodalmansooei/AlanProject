@@ -7,13 +7,13 @@ robot_control.robot = reload(robot_control.robot)
 
 model = nengo.Network(label="Entire robot test")
 
-testing_hand_position = np.asarray(np.linspace(0, -1, 3))
+testing_hand_position = np.asarray([[.3, .5, -.7]])
 with model:
-    actions = nengo.Node(output=lambda t: [1, 0])
+    actions = nengo.Node(output=lambda t: [1, 1])
     lip_enable = nengo.Node(output=lambda t: [0])
     hand_position = nengo.Node(testing_hand_position.ravel())
-    finger_enable = nengo.Node(output=lambda t: [0])
-    head_position = nengo.Node(output=lambda t: [np.pi / 2, np.pi/6])
+    finger_enable = nengo.Node(output=lambda t: [1])
+    head_position = nengo.Node(output=lambda t: [np.pi / 2, np.pi / 6])
 
     mr_robot = robot_control.robot.Robot()
 
