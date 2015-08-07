@@ -16,7 +16,7 @@ with model:
     left_hand_position = nengo.Node(testing_left_hand_position.ravel())
     right_hand_position = nengo.Node(testing_right_hand_position.ravel())
 
-    selection = robot_control.action.ActionSelectionExecution(3)
+    selection = robot_control.action.ActionSelectionExecution()
 
     nengo.Connection(actions, selection.actions.input)
     nengo.Connection(lip_enable, selection.lip_enable)

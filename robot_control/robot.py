@@ -51,21 +51,21 @@ class Robot(nengo.Network):
                                 self.hand_position, self.gamma,
                                 arm_type=HandType.LEFT,
                                 n_neurons=self.n_neurons, seed=seed)
-            self.head = Head(self.lip_position)
-            self.action = ActionSelectionExecution(2)
+            self.head = Head(self.lip_position, seed=seed)
+            self.action = ActionSelectionExecution(seed=seed)
 
             # Lip position available in action selection and execution
             nengo.Connection(self.head.lips_position, self.action.lip_position)
 
             # Action enables arm and head
-            nengo.Connection(self.action.arm_enable, self.right_arm.enable)
-            nengo.Connection(self.action.arm_enable, self.left_arm.enable)
+            nengo.Connection(self.action.right_arm_enable, self.right_arm.enable)
+            nengo.Connection(self.action.left_arm_enable, self.left_arm.enable)
             nengo.Connection(self.action.head_enable, self.head.enable)
 
             # Targets propagated to concerned components
-            nengo.Connection(self.action.arm_target_position,
+            nengo.Connection(self.action.right_arm_target_position,
                              self.right_arm.target_position.input)
-            nengo.Connection(self.action.arm_target_position,
+            nengo.Connection(self.action.left_arm_target_position,
                              self.left_arm.target_position.input,
                              transform=[[-1, 0, 0],
                                         [0, 1, 0],
@@ -74,9 +74,9 @@ class Robot(nengo.Network):
                              self.head.target_position.input)
 
             # Arm finger enabling propagation
-            nengo.Connection(self.action.finger_enable,
+            nengo.Connection(self.action.right_finger_enable,
                              self.right_arm.action_enable)
-            nengo.Connection(self.action.finger_enable,
+            nengo.Connection(self.action.left_finger_enable,
                              self.left_arm.action_enable)
 
             # Motor connection
