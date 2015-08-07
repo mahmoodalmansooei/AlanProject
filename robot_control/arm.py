@@ -45,27 +45,22 @@ class Arm(nengo.Network):
         world space. The goal of the arm is to move the end effector in the
         desired position and then execute an action. This should only happen if
         the arm is not inhibited by a controller ensemble or action selector.
-
         The current implementation is compliant with the requirements of the
         Alan Project (art project for the Manchester Art Gallery).
-
         The arm will receive information from the outside world regarding:
         *   target position vector in world space
         *   control signal -- allowed to move the arm or not
-
         The arm will be initialised with these values:
         *   distances between joints (length of links):
             +   elbow in relation to the shoulder
             +   hand in relation to the elbow
         *   shoulder position
         *   shoulder constant offset (gamma)
-
         Assumptions:
         *   links between joints are straight and rigid
         *   links do not change length
         *   base position (shoulder) does not change
         *   target position can change
-
         ========================================================================
         :param shoulder_position:
         :type shoulder_position:
@@ -198,7 +193,7 @@ class Arm(nengo.Network):
 
             nengo.Connection(self.target_position.output[0],
                              self.adjusted_target_position.input[0],
-                             transform=[[-1]])
+                             transform=[[self.arm_type]])
 
             nengo.Connection(self.target_position.output[1:3],
                              self.adjusted_target_position.input[1:3])
@@ -471,7 +466,6 @@ class Arm(nengo.Network):
             # region Error between target and current beta angles
             """
             Beta angle error will be computed in the following way:
-
             - compute the position of the new_target = target - shoulder
             - rotate the new_target by -alpha around Y, then by -gamma around Z
             - compute the np.arctan2 of the final_target
