@@ -1,5 +1,3 @@
-from enum import IntEnum
-
 __author__ = 'Petrut Bogdan'
 
 import nengo
