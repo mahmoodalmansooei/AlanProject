@@ -14,11 +14,6 @@ class HandType(IntEnum):
     RIGHT = 1
 
 
-class HandType(IntEnum):
-    LEFT = 1
-    RIGHT = 0
-
-
 def _alpha_error(x):
     target_alpha, current_alpha = x
     return np.sign(target_alpha - current_alpha) * \
