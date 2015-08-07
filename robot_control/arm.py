@@ -300,61 +300,11 @@ class Arm(nengo.Network):
                              self.shoulder_target_position, synapse=self.tau)
 
             # Target angle is finally computed
-            # Now decided whether it is correct (computed for a right hand)
-            # or it should be adjusted for a left hand (**hacky**)
-
-            self.type_node = nengo.Node(output=arm_type)
-
-            self.right_handed = nengo.Ensemble(3 * self.n_neurons, 1)
-
-            nengo.Connection(self.type_node, self.right_handed)
-
-            self.hand_type_selector = nengo.networks.BasalGanglia(
-                dimensions=2, n_neurons_per_ensemble=self.n_neurons,
-                net=nengo.Network("Hand type selector"),
-                output_weight=-4)
-
-            # Right handed
-            nengo.Connection(self.right_handed,
-                             self.hand_type_selector.input[0],
-                             function=lambda x: 1 - x)
-            # Left handed
-            nengo.Connection(self.right_handed,
-                             self.hand_type_selector.input[1])
-
-            # Thalamus
-            self.hand_type_executor = nengo.networks.Thalamus(
-                dimensions=2, n_neurons_per_ensemble=2 * self.n_neurons,
-                net=nengo.Network("Hand type computer"))
-
-            nengo.Connection(self.hand_type_selector.output,
-                             self.hand_type_executor.input)
-            # If right hand target stays the same
-            self.right_handed_angle_mm = nengo.Ensemble(4 * self.n_neurons, 2)
-            nengo.Connection(self.shoulder_target_position,
-                             self.right_handed_angle_mm[0],
-                             function=lambda x: np.arctan2(x[1], x[0]))
-            nengo.Connection(self.hand_type_executor.output[0],
-                             self.right_handed_angle_mm[1])
-            # else target angle is adjusted
-            self.left_handed_angle_mm = nengo.Ensemble(4 * self.n_neurons, 2)
-            nengo.Connection(self.shoulder_target_position,
-                             self.left_handed_angle_mm[0],
-                             function=lambda x: -np.arctan2(x[1], x[0]))
-            nengo.Connection(self.hand_type_executor.output[1],
-                             self.left_handed_angle_mm[1])
-
-            # ------------------------------------------------------------------
-            self.computed_alpha = nengo.Ensemble(4 * self.n_neurons, 1)
-            nengo.Connection(self.right_handed_angle_mm, self.computed_alpha,
-                             function=lambda x: x[0] * x[1])
-            nengo.Connection(self.left_handed_angle_mm, self.computed_alpha,
-                             function=lambda x: x[0] * x[1])
-
             # If target has the same X as the shoulder then default to -pi/2
             # angle for the shoulder
             # else use the computed value
-            self.target_x = nengo.Ensemble(3 * self.n_neurons, 1)
+            self.target_x = nengo.Ensemble(self.n_neurons, 1,
+                                           radius=self.length_radius)
             nengo.Connection(self.adjusted_target_position.output[0],
                              self.target_x)
             nengo.Connection(self._shoulder[0], self.target_x, transform=[[-1]])
@@ -394,8 +344,9 @@ class Arm(nengo.Network):
             self.compute_target_mm = nengo.Ensemble(3 * self.n_neurons, 2,
                                                     radius=self.angle_radius)
 
-            nengo.Connection(self.computed_alpha,
+            nengo.Connection(self.shoulder_target_position,
                              self.compute_target_mm[0],
+                             function=lambda x: np.arctan2(x[1],x[0]),
                              synapse=self.tau)
             nengo.Connection(self.target_position_computer.output[0],
                              self.compute_target_mm[1])
