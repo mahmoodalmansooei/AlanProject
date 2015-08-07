@@ -4,6 +4,12 @@ import nengo
 import numpy as np
 import warnings
 from robot_utils.matrix_multiplication import MatrixMultiplication
+from enum import IntEnum
+
+
+class HandType(IntEnum):
+    LEFT = -1
+    RIGHT = 1
 
 
 def _alpha_error(x):
@@ -32,8 +38,8 @@ class Arm(nengo.Network):
     def __init__(self, shoulder_position, elbow_position, hand_position, gamma,
                  n_neurons=100, length_radius=1.7, tau=0.2,
                  shoulder_sensitivity=2., elbow_sensitivity=2.,
-                 finger_sensitivity=2.0, label=None, seed=None,
-                 add_to_container=None):
+                 finger_sensitivity=2.0, arm_type=HandType.RIGHT, label=None,
+                 seed=None, add_to_container=None):
         """
         Class that represents a robotic arm with 3 degrees of freedom moving in
         world space. The goal of the arm is to move the end effector in the
@@ -92,8 +98,6 @@ class Arm(nengo.Network):
         """
         # TODO Connect external error to motor/sensor (they must decay
         # TODO realistically if not updated)
-
-        # TODO Need to have an option for left / right hand
         super(Arm, self).__init__(label, seed, add_to_container)
         # region Variable assignment
         self.n_neurons = n_neurons
@@ -108,6 +112,7 @@ class Arm(nengo.Network):
         self.elbow_position = elbow_position
         self.hand_position = hand_position
         self.gamma = gamma
+        self.arm_type = arm_type
         # endregion
         # region Type checking and casting; bounds checking
         if type(shoulder_position) != np.ndarray:
@@ -146,7 +151,7 @@ class Arm(nengo.Network):
         with self:
             # region input
             self.target_position = nengo.networks.EnsembleArray(
-                self.n_neurons, n_ensembles=3)
+                self.n_neurons, n_ensembles=3, radius=self.length_radius)
 
             self.external_shoulder_error = nengo.Ensemble(
                 self.n_neurons, dimensions=1,
@@ -186,6 +191,18 @@ class Arm(nengo.Network):
                                     label="Hand position")
             self.gamma_angle = nengo.Node(output=self.gamma,
                                           label="Constant shoulder incline")
+            # endregion
+            # region Future computations take into account the type of arm
+            self.adjusted_target_position = nengo.networks.EnsembleArray(
+                self.n_neurons, n_ensembles=3, radius=self.length_radius)
+
+            nengo.Connection(self.target_position.output[0],
+                             self.adjusted_target_position.input[0],
+                             transform=[[-1]])
+
+            nengo.Connection(self.target_position.output[1:3],
+                             self.adjusted_target_position.input[1:3])
+
             # endregion
             # region Compute the elbow position
             self.alpha_angle = nengo.Ensemble(n_neurons=self.n_neurons,
@@ -286,7 +303,7 @@ class Arm(nengo.Network):
                 radius=self.length_radius)
             nengo.Connection(self._shoulder, self.translated_target_position,
                              transform=[[1, 0, 0], [0, 0, 1]])
-            nengo.Connection(self.target_position.output,
+            nengo.Connection(self.adjusted_target_position.output,
                              self.translated_target_position,
                              transform=[[-1, 0, 0], [0, 0, -1]])
 
@@ -378,7 +395,8 @@ class Arm(nengo.Network):
             # angle for the shoulder
             # else use the computed value
             self.target_x = nengo.Ensemble(3 * self.n_neurons, 1)
-            nengo.Connection(self.target_position.output[0], self.target_x)
+            nengo.Connection(self.adjusted_target_position.output[0],
+                             self.target_x)
             nengo.Connection(self._shoulder[0], self.target_x, transform=[[-1]])
             self.x_sign = nengo.Ensemble(3 * self.n_neurons, 1)
             nengo.Connection(self.target_x, self.x_sign, function=np.sign)
@@ -466,7 +484,8 @@ class Arm(nengo.Network):
                 self.n_neurons, 3,
                 radius=self.length_radius)
 
-            nengo.Connection(self.target_position.output, self.new_target.input)
+            nengo.Connection(self.adjusted_target_position.output,
+                             self.new_target.input)
             nengo.Connection(self._shoulder, self.new_target.input,
                              transform=-np.eye(3))
 
