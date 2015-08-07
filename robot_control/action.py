@@ -9,7 +9,7 @@ _vector = np.asarray(np.zeros((1, 3)))
 
 
 class ActionSelectionExecution(nengo.Network):
-    def __init__(self, dimensions, n_neurons=100, tau=0.01, radius=1.7,
+    def __init__(self, n_neurons=100, tau=0.01, radius=1.7,
                  label=None, seed=None, add_to_container=None):
         """
         Actions:
@@ -38,7 +38,7 @@ class ActionSelectionExecution(nengo.Network):
                                                        add_to_container)
 
         # region Variable assignment
-        self.dimensions = dimensions
+        self.dimensions = 3
         self.n_neurons = n_neurons
         self.tau = tau
         self.radius = radius
@@ -54,7 +54,7 @@ class ActionSelectionExecution(nengo.Network):
 
             # Input actions from outside
             self.actions = nengo.networks.EnsembleArray(self.n_neurons,
-                                                        dimensions)
+                                                        self.dimensions)
             # Exterior decided head target position
             self.head_position = nengo.Ensemble(4 * self.n_neurons, 2,
                                                 radius=self.radius)
@@ -145,29 +145,43 @@ class ActionSelectionExecution(nengo.Network):
             nengo.Connection(self.right_hand_position_selector.output,
                              self.right_hand_position_computer.input)
 
-            self.right_lip_mm = nengo.Ensemble(6 * self.n_neurons, 4,
-                                               radius=1.7)
-            nengo.Connection(self.lip_position, self.right_lip_mm[0:3])
+            self.right_lip_mm = nengo.Ensemble(self.n_neurons, 1)
             nengo.Connection(self.right_hand_position_computer.output[0],
-                             self.right_lip_mm[3])
+                             self.right_lip_mm)
+            # Matrix multiplication 1
+            self.right_lip_multiplier = MatrixMultiplication(
+                self.n_neurons, matrix_A=np.zeros((1, 3)),
+                matrix_B=np.zeros((3, 3)))
+            nengo.Connection(self.lip_position, self.right_lip_multiplier.in_A)
+            nengo.Connection(self.right_lip_mm, self.right_lip_multiplier.in_B,
+                             function=lambda x: np.asarray([[x, 0, 0],
+                                                            [0, x, 0],
+                                                            [0, 0, x]]).ravel())
 
-            self.right_hand_mm = nengo.Ensemble(6 * self.n_neurons, 4,
-                                                radius=1.7)
-            nengo.Connection(self.right_hand_position, self.right_hand_mm[0:3])
+            self.right_hand_mm = nengo.Ensemble(self.n_neurons, 1)
             nengo.Connection(self.right_hand_position_computer.output[1],
-                             self.right_hand_mm[3])
+                             self.right_hand_mm)
+            # Matrix multiplication 2
+            self.right_hand_multiplier = MatrixMultiplication(
+                self.n_neurons, matrix_A=np.zeros((1, 3)),
+                matrix_B=np.zeros((3, 3)))
 
             self.right_arm_target_position = nengo.Ensemble(6 * self.n_neurons,
                                                             3, radius=1.7)
+            nengo.Connection(self.right_hand_position,
+                             self.right_hand_multiplier.in_A)
+            nengo.Connection(self.right_hand_mm,
+                             self.right_hand_multiplier.in_B,
+                             function=lambda x: np.asarray([[x, 0, 0],
+                                                            [0, x, 0],
+                                                            [0, 0, x]]).ravel())
 
-            nengo.Connection(self.right_lip_mm, self.right_arm_target_position,
-                             synapse=self.tau,
-                             function=lambda x: [x[0] * x[3], x[1] * x[3],
-                                                 x[2] * x[3]])
-            nengo.Connection(self.right_hand_mm, self.right_arm_target_position,
-                             synapse=self.tau,
-                             function=lambda x: [x[0] * x[3], x[1] * x[3],
-                                                 x[2] * x[3]])
+            nengo.Connection(self.right_lip_multiplier.output,
+                             self.right_arm_target_position,
+                             synapse=self.tau)
+            nengo.Connection(self.right_hand_multiplier.output,
+                             self.right_arm_target_position,
+                             synapse=self.tau)
             # endregion
             # region Left hand target selection and output
             # Basal ganglia selects between the sources of the target
@@ -193,31 +207,45 @@ class ActionSelectionExecution(nengo.Network):
             nengo.Connection(self.left_hand_position_selector.output,
                              self.left_hand_position_computer.input)
 
-            self.left_lip_mm = nengo.Ensemble(6 * self.n_neurons, 4,
-                                              radius=1.7)
-            nengo.Connection(self.lip_position, self.left_lip_mm[0:3])
+            self.left_lip_mm = nengo.Ensemble(self.n_neurons, 1)
             nengo.Connection(self.left_hand_position_computer.output[0],
-                             self.left_lip_mm[3])
+                             self.left_lip_mm)
+            # Matrix multiplication 1
+            self.left_lip_multiplier = MatrixMultiplication(
+                self.n_neurons, matrix_A=np.zeros((3, 3)),
+                matrix_B=np.zeros((3, 1)))
+            nengo.Connection(self.lip_position, self.left_lip_multiplier.in_B)
+            nengo.Connection(self.left_lip_mm, self.left_lip_multiplier.in_A,
+                             function=lambda x: np.asarray([[x, 0, 0],
+                                                            [0, x, 0],
+                                                            [0, 0, x]]).ravel())
 
-            self.left_hand_mm = nengo.Ensemble(6 * self.n_neurons, 4,
-                                               radius=1.7)
-            nengo.Connection(self.left_hand_position, self.left_hand_mm[0:3])
+            self.left_hand_mm = nengo.Ensemble(self.n_neurons, 1)
             nengo.Connection(self.left_hand_position_computer.output[1],
-                             self.left_hand_mm[3])
+                             self.left_hand_mm)
+            # Matrix multiplication 2
+            self.left_hand_multiplier = MatrixMultiplication(
+                self.n_neurons, matrix_A=np.zeros((3, 3)),
+                matrix_B=np.zeros((3, 1)))
 
             self.left_arm_target_position = nengo.Ensemble(6 * self.n_neurons,
                                                            3, radius=1.7)
+            nengo.Connection(self.left_hand_position,
+                             self.left_hand_multiplier.in_B)
+            nengo.Connection(self.left_hand_mm,
+                             self.left_hand_multiplier.in_A,
+                             function=lambda x: np.asarray([[x, 0, 0],
+                                                            [0, x, 0],
+                                                            [0, 0, x]]).ravel())
 
-            nengo.Connection(self.left_lip_mm, self.left_arm_target_position,
-                             synapse=self.tau,
-                             function=lambda x: [x[0] * x[3], x[1] * x[3],
-                                                 x[2] * x[3]])
-            nengo.Connection(self.left_hand_mm, self.left_arm_target_position,
-                             synapse=self.tau,
-                             function=lambda x: [x[0] * x[3], x[1] * x[3],
-                                                 x[2] * x[3]])
+            nengo.Connection(self.left_lip_multiplier.output,
+                             self.left_arm_target_position,
+                             synapse=self.tau)
+            nengo.Connection(self.left_hand_multiplier.output,
+                             self.left_arm_target_position,
+                             synapse=self.tau)
             # endregion
 
 
 if __name__ == "__main__":
-    selection = ActionSelectionExecution(2)
+    selection = ActionSelectionExecution(3)
