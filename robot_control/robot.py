@@ -46,19 +46,24 @@ class Robot(nengo.Network):
             self.right_arm = Arm(self.shoulder_position, self.elbow_position,
                                  self.hand_position, self.gamma,
                                  arm_type=HandType.RIGHT,
-                                 n_neurons=self.n_neurons, seed=seed)
+                                 n_neurons=self.n_neurons, seed=seed,
+                                 label="Right arm controller")
             self.left_arm = Arm(self.shoulder_position, self.elbow_position,
                                 self.hand_position, self.gamma,
                                 arm_type=HandType.LEFT,
-                                n_neurons=self.n_neurons, seed=seed)
-            self.head = Head(self.lip_position, seed=seed)
-            self.action = ActionSelectionExecution(seed=seed)
+                                n_neurons=self.n_neurons, seed=seed,
+                                label="Left arm controller")
+            self.head = Head(self.lip_position, seed=seed,
+                             label="Head controller")
+            self.action = ActionSelectionExecution(
+                seed=seed, label="Action selection and execution")
 
             # Lip position available in action selection and execution
             nengo.Connection(self.head.lips_position, self.action.lip_position)
 
             # Action enables arm and head
-            nengo.Connection(self.action.right_arm_enable, self.right_arm.enable)
+            nengo.Connection(self.action.right_arm_enable,
+                             self.right_arm.enable)
             nengo.Connection(self.action.left_arm_enable, self.left_arm.enable)
             nengo.Connection(self.action.head_enable, self.head.enable)
 
@@ -97,13 +102,18 @@ class Robot(nengo.Network):
                              self.left_finger_motor)
 
             # Control signals
-            self.done = nengo.Ensemble(self.n_neurons, 1)
-            nengo.Connection(self.head.done, self.done, transform=[[.4]],
+            self.everything_done = nengo.Ensemble(self.n_neurons, 1)
+            nengo.Connection(self.head.done, self.everything_done,
+                             transform=[[.4]],
                              synapse=self.tau)
-            nengo.Connection(self.right_arm.done, self.done, transform=[[.4]],
+            nengo.Connection(self.right_arm.done, self.everything_done,
+                             transform=[[.4]],
                              synapse=self.tau)
-            nengo.Connection(self.left_arm.done, self.done, transform=[[.4]],
+            nengo.Connection(self.left_arm.done, self.everything_done,
+                             transform=[[.4]],
                              synapse=self.tau)
+            self.done = nengo.Node(size_in=1)
+            nengo.Connection(self.everything_done, self.done)
 
 
 if __name__ == "__main__":
