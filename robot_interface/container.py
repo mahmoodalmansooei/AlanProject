@@ -31,6 +31,11 @@ class Container(object):
         if callback:
             thread.start_new_thread(callback, (key, value))
 
+    def set_default_callback(self, callback):
+        self.default_callback = callback
+        if callback:
+            assert callable(callback)
+
 
 class ContainerThread(threading.Thread):
     def __init__(self, container):
