@@ -1,9 +1,12 @@
 __author__ = 'Petrut Bogdan'
+
 import nengo
 import numpy as np
 from arm import Arm, HandType
 from head import Head
 from action import ActionSelectionExecution
+from robot_interface.container import Container
+from robot_models.motor import Motor
 
 
 class Robot(nengo.Network):
@@ -13,7 +16,7 @@ class Robot(nengo.Network):
                  upper_arm_length=.5, lower_arm_length=.5, lip_distance=.2,
                  tau=0.2,
                  shoulder_sensitivity=2., elbow_sensitivity=2.,
-                 finger_sensitivity=1.0,
+                 finger_sensitivity=1.0, sampling_period=100, dt=1000.,
                  label=None, seed=None, add_to_container=None):
         super(Robot, self).__init__(label, seed, add_to_container)
         # region Variable assignment
@@ -31,17 +34,37 @@ class Robot(nengo.Network):
         self.hand_position = np.asarray([0, lower_arm_length, 0])
         self.lip_position = np.asarray([0, lip_distance, 0])
         # endregion
+        # Create a container in which to organise all the motors
+        self.motor_container = Container()
         with self:
             # region Motors
-            self.head_motor = nengo.Node(size_in=1)
-            self.eye_x_motor = nengo.Node(size_in=1)
-            self.eye_y_motor = nengo.Node(size_in=1)
-            self.right_shoulder_motor = nengo.Node(size_in=1)
-            self.right_elbow_motor = nengo.Node(size_in=1)
-            self.right_finger_motor = nengo.Node(size_in=1)
-            self.left_shoulder_motor = nengo.Node(size_in=1)
-            self.left_elbow_motor = nengo.Node(size_in=1)
-            self.left_finger_motor = nengo.Node(size_in=1)
+            self.head_motor = Motor(self.motor_container,
+                                    sampling_period, dt,
+                                    label="Head motor")
+            self.eye_x_motor = Motor(self.motor_container,
+                                     sampling_period, dt,
+                                     label="Eye x motor")
+            self.eye_y_motor = Motor(self.motor_container,
+                                     sampling_period, dt,
+                                     label="Eye y motor")
+            self.right_shoulder_motor = Motor(self.motor_container,
+                                              sampling_period, dt,
+                                              label="Right shoulder motor")
+            self.right_elbow_motor = Motor(self.motor_container,
+                                           sampling_period, dt,
+                                           label="Right elbow motor")
+            self.right_finger_motor = Motor(self.motor_container,
+                                            sampling_period, dt,
+                                            label="Right finger motor")
+            self.left_shoulder_motor = Motor(self.motor_container,
+                                             sampling_period, dt,
+                                             label="Left shoulder motor")
+            self.left_elbow_motor = Motor(self.motor_container,
+                                          sampling_period, dt,
+                                          label="Left elbow motor")
+            self.left_finger_motor = Motor(self.motor_container,
+                                           sampling_period, dt,
+                                           label="Left finger motor")
             # endregion
             self.right_arm = Arm(self.shoulder_position, self.elbow_position,
                                  self.hand_position, self.gamma,
