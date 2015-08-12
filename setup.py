@@ -13,4 +13,11 @@ setup(
     # Requirements
     install_requires=["nengo>=2.0.0, <3.0.0", "rig>=0.5.3, <1.0.0",
                       "bitarray>=0.8.1, <1.0.0", "nengo_spinnaker>=0.2.4"],
+    classifiers=[
+        "Operating System :: POSIX :: Linux",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: MacOS",
+
+        "Programming Language :: Python :: 2.7"
+    ]
 )
