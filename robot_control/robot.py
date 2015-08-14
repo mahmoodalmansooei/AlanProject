@@ -11,12 +11,18 @@ from robot_models.motor import Motor
 
 class Robot(nengo.Network):
     def __init__(self, n_neurons=100, radius=1.7,
-                 idle_position=np.asarray([[.3, .5, -.7]]),
+                 idle_left_hand_position=np.asarray([[.3, .5, -.7]]),
+                 idle_right_hand_position=np.asarray([[.3, .5, -.7]]),
                  gamma=0, shoulder_width=.3, neck_length=.2,
                  upper_arm_length=.5, lower_arm_length=.5, lip_distance=.2,
                  tau=0.2,
                  shoulder_sensitivity=2., elbow_sensitivity=2.,
-                 finger_sensitivity=1.0, sampling_period=100, dt=1000.,
+                 finger_sensitivity=1.0, sampling_period=100, dt=0.001,
+                 initial_actions=np.array([1, 0, 0]),
+                 initial_lip_enable=np.array([0, 0]),
+                 initial_left_finger_enable=np.array([0]),
+                 initial_right_finger_enable=np.array([0]),
+                 initial_head_position=np.array([0, 0]),
                  label=None, seed=None, add_to_container=None):
         super(Robot, self).__init__(label, seed, add_to_container)
         # region Variable assignment
@@ -26,7 +32,7 @@ class Robot(nengo.Network):
         self.tau = tau
         self.shoulder_width = shoulder_width
         self.shoulder_position = np.asarray([shoulder_width, 0, -neck_length])
-        self.idle_position = idle_position
+        self.idle_position = idle_left_hand_position
         self.radius = radius
         self.n_neurons = n_neurons
         self.elbow_position = np.asarray([upper_arm_length, 0, 0])
@@ -36,6 +42,21 @@ class Robot(nengo.Network):
         # endregion
         # Create a container in which to organise all the motors
         self.motor_container = Container()
+        with self:
+            # region Inputs to the simulation
+            self.actions = nengo.Node(initial_actions.ravel())
+            self.lip_enable = nengo.Node(initial_lip_enable.ravel())
+            self.right_hand_position = nengo.Node(
+                idle_right_hand_position.ravel())
+            self.left_hand_position = nengo.Node(
+                idle_left_hand_position.ravel())
+            self.right_finger_enable = nengo.Node(
+                initial_right_finger_enable.ravel())
+            self.left_finger_enable = nengo.Node(
+                initial_left_finger_enable.ravel())
+            self.head_position = nengo.Node(initial_head_position.ravel())
+            # endregion
+
         with self:
             # region Motors
             self.head_motor = Motor(self.motor_container,
@@ -66,6 +87,7 @@ class Robot(nengo.Network):
                                            sampling_period, dt,
                                            label="Left finger motor")
             # endregion
+            # region Links
             self.right_arm = Arm(self.shoulder_position, self.elbow_position,
                                  self.hand_position, self.gamma,
                                  arm_type=HandType.RIGHT,
@@ -80,7 +102,7 @@ class Robot(nengo.Network):
                              label="Head controller")
             self.action = ActionSelectionExecution(
                 seed=seed, label="Action selection and execution")
-
+            # endregion
             # Lip position available in action selection and execution
             nengo.Connection(self.head.lips_position, self.action.lip_position)
 
@@ -107,7 +129,7 @@ class Robot(nengo.Network):
             nengo.Connection(self.action.left_finger_enable,
                              self.left_arm.action_enable)
 
-            # Motor connection
+            # region Motor connection
             nengo.Connection(self.head.head_motor, self.head_motor)
             nengo.Connection(self.head.eye_motor[0], self.eye_x_motor)
             nengo.Connection(self.head.eye_motor[1], self.eye_y_motor)
@@ -123,8 +145,8 @@ class Robot(nengo.Network):
             nengo.Connection(self.left_arm.elbow_motor, self.left_elbow_motor)
             nengo.Connection(self.left_arm.finger_motor,
                              self.left_finger_motor)
-
-            # Control signals
+            # endregion
+            # region Control signals
             self.everything_done = nengo.Ensemble(self.n_neurons, 1)
             nengo.Connection(self.head.done, self.everything_done,
                              transform=[[.4]],
@@ -137,6 +159,20 @@ class Robot(nengo.Network):
                              synapse=self.tau)
             self.done = nengo.Node(size_in=1)
             nengo.Connection(self.everything_done, self.done)
+            # endregion
+            # region Connect inputs
+            nengo.Connection(self.actions, self.action.actions.input)
+            nengo.Connection(self.lip_enable, self.action.lip_enable)
+            nengo.Connection(self.right_hand_position,
+                             self.action.right_hand_position)
+            nengo.Connection(self.left_hand_position,
+                             self.action.left_hand_position)
+            nengo.Connection(self.right_finger_enable,
+                             self.action.right_finger_enable)
+            nengo.Connection(self.left_finger_enable,
+                             self.action.left_finger_enable)
+            nengo.Connection(self.head_position, self.action.head_position)
+            # endregion
 
 
 if __name__ == "__main__":
