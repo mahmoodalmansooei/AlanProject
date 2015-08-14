@@ -28,8 +28,10 @@ class ControlSignal(nengo.Node):
         node.
         :param time: The current simulation time
         :type time: float
-        :return: None
-        :rtype:
+        :return: An array of size size_out
+        :rtype: np.ndarray
+        :raises: KeyError if control signal output not assigned in container
+        before simulation starts
         """
         # TODO Make transmit period be adjustable
         return self.container[self]
