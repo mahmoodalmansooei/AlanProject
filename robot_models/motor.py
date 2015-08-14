@@ -41,4 +41,4 @@ class Motor(nengo.Node):
         """
         if time - self.previous_time >= self.sampling_period:
             self.previous_time = time
-            self.container.update(self, (time, values))
+            self.container.update(self, values)
