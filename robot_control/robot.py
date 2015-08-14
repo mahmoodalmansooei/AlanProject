@@ -7,6 +7,8 @@ from head import Head
 from action import ActionSelectionExecution
 from robot_interface.container import Container
 from robot_models.motor import Motor
+from robot_models.sensor import Sensor
+from robot_models.control_signal import ControlSignal
 
 
 class Robot(nengo.Network):
@@ -20,8 +22,8 @@ class Robot(nengo.Network):
                  finger_sensitivity=1.0, sampling_period=100, dt=0.001,
                  initial_actions=np.array([1, 0, 0]),
                  initial_lip_enable=np.array([0, 0]),
-                 initial_left_finger_enable=np.array([0]),
-                 initial_right_finger_enable=np.array([0]),
+                 initial_left_finger_enable=np.array([1]),
+                 initial_right_finger_enable=np.array([1]),
                  initial_head_position=np.array([0, 0]),
                  label=None, seed=None, add_to_container=None):
         super(Robot, self).__init__(label, seed, add_to_container)
@@ -40,24 +42,69 @@ class Robot(nengo.Network):
         self.hand_position = np.asarray([0, lower_arm_length, 0])
         self.lip_position = np.asarray([0, lip_distance, 0])
         # endregion
-        # Create a container in which to organise all the motors
+        # Create a container in which to organise all the motors, sensors
+        # and control signals
         self.motor_container = Container()
-        with self:
-            # region Inputs to the simulation
-            self.actions = nengo.Node(initial_actions.ravel())
-            self.lip_enable = nengo.Node(initial_lip_enable.ravel())
-            self.right_hand_position = nengo.Node(
-                idle_right_hand_position.ravel())
-            self.left_hand_position = nengo.Node(
-                idle_left_hand_position.ravel())
-            self.right_finger_enable = nengo.Node(
-                initial_right_finger_enable.ravel())
-            self.left_finger_enable = nengo.Node(
-                initial_left_finger_enable.ravel())
-            self.head_position = nengo.Node(initial_head_position.ravel())
-            # endregion
+        self.sensor_container = Container()
+        self.control_container = Container()
 
         with self:
+            # region Control signals for the simulation
+            self.actions = ControlSignal(self.control_container, size_out=3,
+                                         label="Actions control signal")
+            self.lip_enable = ControlSignal(self.control_container, size_out=2,
+                                            label="Lip enable control signal")
+            self.right_hand_position = ControlSignal(
+                self.control_container, size_out=3,
+                label="Right hand position control signal")
+            self.left_hand_position = ControlSignal(
+                self.control_container, size_out=3,
+                label="Left hand position control signal")
+            self.right_finger_enable = ControlSignal(
+                self.control_container, size_out=1,
+                label="Right finger enable control signal")
+            self.left_finger_enable = ControlSignal(
+                self.control_container, size_out=1,
+                label="Left finger enable control signal")
+            self.head_position = ControlSignal(
+                self.control_container, size_out=2,
+                label="Head position control signal")
+            # endregion
+        # region Node outputs set to their initial values
+        self.control_container.add(self.actions, initial_actions.ravel())
+        self.control_container.add(self.lip_enable, initial_lip_enable.ravel())
+        self.control_container.add(self.right_hand_position,
+                                   idle_right_hand_position.ravel())
+        self.control_container.add(self.left_hand_position,
+                                   idle_left_hand_position.ravel())
+        self.control_container.add(self.right_finger_enable,
+                                   initial_right_finger_enable.ravel())
+        self.control_container.add(self.left_finger_enable,
+                                   initial_left_finger_enable.ravel())
+        self.control_container.add(self.head_position,
+                                   initial_head_position.ravel())
+        # endregion
+        with self:
+            # region Sensors
+            self.head_sensor = Sensor(self.sensor_container,
+                                      label="Head sensor")
+            self.eye_x_sensor = Sensor(self.sensor_container,
+                                       label="Eye x sensor")
+            self.eye_y_sensor = Sensor(self.sensor_container,
+                                       label="Eye y sensor")
+            self.right_shoulder_sensor = Sensor(self.sensor_container,
+                                                label="Right shoulder sensor")
+            self.right_elbow_sensor = Sensor(self.sensor_container,
+                                             label="Right elbow sensor")
+            self.right_finger_sensor = Sensor(self.sensor_container,
+                                              label="Right finger sensor")
+            self.left_shoulder_sensor = Sensor(self.sensor_container,
+                                               label="Left shoulder sensor")
+            self.left_elbow_sensor = Sensor(self.sensor_container,
+                                            label="Left elbow sensor")
+            self.left_finger_sensor = Sensor(self.sensor_container,
+                                             label="Left finger sensor")
+            # endregion
             # region Motors
             self.head_motor = Motor(self.motor_container,
                                     sampling_period, dt,
@@ -160,7 +207,7 @@ class Robot(nengo.Network):
             self.done = nengo.Node(size_in=1)
             nengo.Connection(self.everything_done, self.done)
             # endregion
-            # region Connect inputs
+            # region Connect control signals
             nengo.Connection(self.actions, self.action.actions.input)
             nengo.Connection(self.lip_enable, self.action.lip_enable)
             nengo.Connection(self.right_hand_position,
@@ -172,6 +219,29 @@ class Robot(nengo.Network):
             nengo.Connection(self.left_finger_enable,
                              self.action.left_finger_enable)
             nengo.Connection(self.head_position, self.action.head_position)
+            # endregion
+            # region Connect sensors
+            # Head
+            nengo.Connection(self.head_sensor, self.head.external_head_error)
+            nengo.Connection(self.eye_x_sensor, self.head.external_eye_x_error)
+            nengo.Connection(self.eye_y_sensor, self.head.external_eye_y_error)
+
+            # Right arm
+            nengo.Connection(self.right_shoulder_sensor,
+                             self.right_arm.external_shoulder_error)
+            nengo.Connection(self.right_elbow_sensor,
+                             self.right_arm.external_elbow_error)
+            nengo.Connection(self.right_finger_sensor,
+                             self.right_arm.external_finger_error)
+
+            # Left arm
+            nengo.Connection(self.left_shoulder_sensor,
+                             self.left_arm.external_shoulder_error)
+            nengo.Connection(self.left_elbow_sensor,
+                             self.left_arm.external_elbow_error)
+            nengo.Connection(self.left_finger_sensor,
+                             self.left_arm.external_finger_error)
+
             # endregion
 
 
