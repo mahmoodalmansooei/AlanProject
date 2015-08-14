@@ -52,7 +52,7 @@ class TestContainer(TestCase):
 
     def test_update(self):
         out = []
-        self.container = Container(default_callback=lambda x,y: y - 1)
+        self.container = Container(default_callback=lambda x, y: y - 1)
         to_add = [[0, 1], [-1, 2], [15, 4]]
         for tup in to_add:
             self.container.add(key=tup[0], value=tup[1])
@@ -88,3 +88,12 @@ class TestContainer(TestCase):
     def test_callable_check(self):
         with self.assertRaises(AssertionError):
             self.container = Container(3)
+
+    def test_getitem(self):
+        self.container = Container()
+        to_add = {0: 1, -1: 2, 15: 4}
+        for key in to_add.iterkeys():
+            self.container.add(key=key, value=to_add[key])
+        for key in to_add.iterkeys():
+            self.assertEqual(to_add[key], self.container[key],
+                             str(to_add[key]) + " not in values")
