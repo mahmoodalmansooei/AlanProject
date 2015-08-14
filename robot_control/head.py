@@ -132,7 +132,10 @@ class Head(nengo.Network):
             self.external_head_error = nengo.Ensemble(
                 self.n_neurons, dimensions=1,
                 radius=self.angle_radius)
-            self.external_eye_error = nengo.Ensemble(
+            self.external_eye_x_error = nengo.Ensemble(
+                self.n_neurons, dimensions=1,
+                radius=self.angle_radius)
+            self.external_eye_y_error = nengo.Ensemble(
                 self.n_neurons, dimensions=1,
                 radius=self.angle_radius)
             # endregion
