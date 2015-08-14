@@ -36,6 +36,9 @@ class Container(object):
         if callback:
             assert callable(callback)
 
+    def __getitem__(self, item):
+        return self.dictionary[item]
+
 
 class ContainerThread(threading.Thread):
     def __init__(self, container):
