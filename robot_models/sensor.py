@@ -15,6 +15,7 @@ class Sensor(nengo.Node):
         :rtype: Sensor
         """
         self.container = container
+        self.container.add(self, 0.)
         super(Sensor, self).__init__(output=self.sensor_output, size_out=1,
                                      label=label)
 
