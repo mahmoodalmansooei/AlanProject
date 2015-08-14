@@ -11,7 +11,7 @@ class Motor(nengo.Node):
         sends information at a certain frequency, not at every change due to
         limitations in the communication channel.
         :param container: The object that receives information from the motor
-        :type container: Container or ContainerThread
+        :type container: Container
         :param sampling_period: The period with which the motor sends information
         :type sampling_period: float or int
         :param dt: The time step in seconds
