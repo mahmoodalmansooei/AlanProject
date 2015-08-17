@@ -25,7 +25,7 @@ The following should work on all operating systems:
 Windows specific
 ---------------- 
 
-+   `Microsoft Visual C++ Compiler for Python 2.7 < http://www.microsoft.com/en-gb/download/details.aspx?id=44266>`_
++   `Microsoft Visual C++ Compiler for Python 2.7 <http://www.microsoft.com/en-gb/download/details.aspx?id=44266>`_
 
 Installation
 ------------ 
