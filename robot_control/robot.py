@@ -25,7 +25,8 @@ class Robot(nengo.Network):
                  initial_left_finger_enable=np.array([1]),
                  initial_right_finger_enable=np.array([1]),
                  initial_head_position=np.array([0, 0]),
-                 label=None, seed=None, add_to_container=None):
+                 external_feedback=False, label=None, seed=None,
+                 add_to_container=None):
         super(Robot, self).__init__(label, seed, add_to_container)
         # region Variable assignment
         self.finger_sensitivity = finger_sensitivity
@@ -138,14 +139,19 @@ class Robot(nengo.Network):
             self.right_arm = Arm(self.shoulder_position, self.elbow_position,
                                  self.hand_position, self.gamma,
                                  arm_type=HandType.RIGHT,
-                                 n_neurons=self.n_neurons, seed=seed,
+                                 n_neurons=self.n_neurons,
+                                 external_feedback=external_feedback,
+                                 seed=seed,
                                  label="Right arm controller")
             self.left_arm = Arm(self.shoulder_position, self.elbow_position,
                                 self.hand_position, self.gamma,
                                 arm_type=HandType.LEFT,
-                                n_neurons=self.n_neurons, seed=seed,
+                                n_neurons=self.n_neurons,
+                                external_feedback=external_feedback,
+                                seed=seed,
                                 label="Left arm controller")
             self.head = Head(self.lip_position, seed=seed,
+                             external_feedback=external_feedback,
                              label="Head controller")
             self.action = ActionSelectionExecution(
                 seed=seed, label="Action selection and execution")
@@ -241,9 +247,9 @@ class Robot(nengo.Network):
                              self.left_arm.external_elbow_error)
             nengo.Connection(self.left_finger_sensor,
                              self.left_arm.external_finger_error)
-
             # endregion
 
 
 if __name__ == "__main__":
     mr_robot = Robot()
+    mr_robot = Robot(external_feedback=True)

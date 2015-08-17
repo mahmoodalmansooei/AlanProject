@@ -13,20 +13,20 @@ class HandType(IntEnum):
 
 
 def _alpha_error(x):
-    target_alpha, current_alpha = x
-    return np.sign(target_alpha - current_alpha) * \
+    target_alpha, current_alpha, external = x
+    return np.sign(target_alpha - external) * \
            (target_alpha - current_alpha) ** 2
 
 
 def _beta_error(x):
-    target_beta, current_beta = x
-    return np.sign(target_beta - current_beta) * \
+    target_beta, current_beta, external = x
+    return np.sign(target_beta - external) * \
            (target_beta - current_beta) ** 2
 
 
 def _finger_error(x):
-    target_angle, current_angle = x
-    return np.sign(target_angle - current_angle) * \
+    target_angle, current_angle, external = x
+    return np.sign(target_angle - external) * \
            (target_angle - current_angle) ** 2
 
 
@@ -38,7 +38,8 @@ class Arm(nengo.Network):
     def __init__(self, shoulder_position, elbow_position, hand_position, gamma,
                  n_neurons=100, length_radius=1.7, tau=0.2,
                  shoulder_sensitivity=2., elbow_sensitivity=2.,
-                 finger_sensitivity=2.0, arm_type=HandType.RIGHT, label=None,
+                 finger_sensitivity=2.0, arm_type=HandType.RIGHT,
+                 external_feedback=False, label=None,
                  seed=None, add_to_container=None):
         """
         Class that represents a robotic arm with 3 degrees of freedom moving in
@@ -91,8 +92,6 @@ class Arm(nengo.Network):
         :return:
         :rtype:
         """
-        # TODO Connect external error to motor/sensor (they must decay
-        # TODO realistically if not updated)
         super(Arm, self).__init__(label, seed, add_to_container)
         # region Variable assignment
         self.n_neurons = n_neurons
@@ -198,12 +197,12 @@ class Arm(nengo.Network):
 
             # endregion
 
-            self.alpha_angle = nengo.Ensemble(n_neurons=self.n_neurons,
+            self.alpha_angle = nengo.Ensemble(n_neurons=3 * self.n_neurons,
                                               dimensions=1,
                                               radius=self.angle_radius,
                                               label="Shoulder alpha angle")
 
-            self.beta_angle = nengo.Ensemble(n_neurons=self.n_neurons,
+            self.beta_angle = nengo.Ensemble(n_neurons=3 * self.n_neurons,
                                              dimensions=1,
                                              radius=self.angle_radius)
             # region Error between target and current alpha angles
@@ -346,7 +345,7 @@ class Arm(nengo.Network):
 
             nengo.Connection(self.shoulder_target_position,
                              self.compute_target_mm[0],
-                             function=lambda x: np.arctan2(x[1],x[0]),
+                             function=lambda x: np.arctan2(x[1], x[0]),
                              synapse=self.tau)
             nengo.Connection(self.target_position_computer.output[0],
                              self.compute_target_mm[1])
@@ -358,11 +357,17 @@ class Arm(nengo.Network):
                              synapse=self.tau,
                              function=lambda x: x[0] * x[1])
 
-            self.shoulder_controller = nengo.Ensemble(4 * self.n_neurons, 2,
+            self.shoulder_controller = nengo.Ensemble(8 * self.n_neurons, 3,
                                                       radius=self.angle_radius)
 
             nengo.Connection(self.target_angle, self.shoulder_controller[0])
             nengo.Connection(self.alpha_angle, self.shoulder_controller[1])
+
+            if external_feedback:
+                nengo.Connection(self.external_shoulder_error,
+                                 self.shoulder_controller[2])
+            else:
+                nengo.Connection(self.alpha_angle, self.shoulder_controller[2])
 
             self.shoulder_error = nengo.Ensemble(self.n_neurons, 1,
                                                  radius=self.angle_radius)
@@ -460,7 +465,7 @@ class Arm(nengo.Network):
                              transform=[[1.7, 0], [0, 1.7]])
 
             self.elbow_controller = nengo.Ensemble(8 * self.n_neurons,
-                                                   dimensions=2,
+                                                   dimensions=3,
                                                    radius=self.angle_radius)
 
             self.beta_target_position = nengo.Ensemble(8 * self.n_neurons, 2)
@@ -474,7 +479,13 @@ class Arm(nengo.Network):
                              synapse=self.tau)
             nengo.Connection(self.beta_angle, self.elbow_controller[1])
 
-            self.elbow_error = nengo.Ensemble(6 * self.n_neurons, 1,
+            if external_feedback:
+                nengo.Connection(self.external_elbow_error,
+                                 self.elbow_controller[2])
+            else:
+                nengo.Connection(self.beta_angle, self.elbow_controller[2])
+
+            self.elbow_error = nengo.Ensemble(8 * self.n_neurons, 1,
                                               radius=self.angle_radius)
             nengo.Connection(self.elbow_controller, self.elbow_error,
                              function=_beta_error)
@@ -504,7 +515,7 @@ class Arm(nengo.Network):
             # The ensemble that combines the target position for the finger
             # and its current position
             self.finger_controller = nengo.Ensemble(
-                n_neurons=4 * self.n_neurons, dimensions=2,
+                n_neurons=8 * self.n_neurons, dimensions=3,
                 radius=self.angle_radius)
             self.finger_error = nengo.Ensemble(self.n_neurons, 1,
                                                radius=self.angle_radius)
@@ -512,6 +523,12 @@ class Arm(nengo.Network):
             nengo.Connection(self.finger_target, self.finger_controller[0],
                              synapse=self.tau)
             nengo.Connection(self.finger, self.finger_controller[1])
+
+            if external_feedback:
+                nengo.Connection(self.external_finger_error,
+                                 self.finger_controller[2])
+            else:
+                nengo.Connection(self.finger, self.finger_controller[2])
 
             nengo.Connection(self.finger_controller, self.finger_error,
                              function=_finger_error)
@@ -594,3 +611,5 @@ class Arm(nengo.Network):
 
 if __name__ == "__main__":
     arm = Arm(np.zeros((3, 1)), np.zeros((3, 1)), np.zeros((3, 1)), 0)
+    arm = Arm(np.zeros((3, 1)), np.zeros((3, 1)), np.zeros((3, 1)), 0,
+              external_feedback=True)

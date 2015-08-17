@@ -15,7 +15,8 @@ def h_error(x):
     :return: The correction needed to match the target
     :rtype: float
     """
-    return np.sign(x[1] - x[0]) * ((x[0] - x[1]) ** 2)
+    current, target, external = x
+    return np.sign(target - external) * ((target - current) ** 2)
 
 
 def e_x_error(x):
@@ -27,8 +28,10 @@ def e_x_error(x):
     :return: The correction needed to match the target
     :rtype: float
     """
-    adjusted_target = x[0] - x[2]
-    return np.sign(adjusted_target - x[1]) * ((adjusted_target - x[1]) ** 2)
+    target, current, head, external = x
+    adjusted_target = target - head
+    return np.sign(adjusted_target - external) * (
+        (adjusted_target - current) ** 2)
 
 
 def e_y_error(x):
@@ -40,14 +43,15 @@ def e_y_error(x):
     :return: The correction needed to match the target
     :rtype: float
     """
-    return np.sign(x[0] - x[1]) * ((x[0] - x[1]) ** 2)
+    target, current, external = x
+    return np.sign(target - external) * ((target - current) ** 2)
 
 
 class Head(nengo.Network):
     def __init__(self, lips_position_offset, n_neurons=100, length_radius=1.2,
                  angle_radius=1.6, tau=0.3, head_sensitivity=1.3,
-                 eye_x_sensitivity=2.0, eye_y_sensitivity=2.0, label=None,
-                 seed=None,
+                 eye_x_sensitivity=2.0, eye_y_sensitivity=2.0,
+                 external_feedback=False, label=None, seed=None,
                  add_to_container=None):
         """
         Class that represents the head movement of the robot. Given the position
@@ -96,9 +100,6 @@ class Head(nengo.Network):
         the current container. Defaults to true iff currently with a Network.
         :type add_to_container:bool
         """
-
-        # TODO Connect external error to motor/sensor (they must decay
-        # TODO realistically if not updated)
         super(Head, self).__init__(label, seed, add_to_container)
         # region Variable assignment
         self.n_neurons = n_neurons
@@ -169,8 +170,8 @@ class Head(nengo.Network):
                                              radius=self.angle_radius,
                                              label="Head error")
 
-            self.head_controller = nengo.Ensemble(n_neurons=4 * self.n_neurons,
-                                                  dimensions=2,
+            self.head_controller = nengo.Ensemble(n_neurons=6 * self.n_neurons,
+                                                  dimensions=3,
                                                   radius=self.angle_radius)
 
             self.current_head = nengo.Ensemble(n_neurons=self.n_neurons,
@@ -183,6 +184,13 @@ class Head(nengo.Network):
                              post=self.head_controller[0])
             nengo.Connection(pre=self.target_position.output[0],
                              post=self.head_controller[1])
+
+            if external_feedback:
+                nengo.Connection(pre=self.external_head_error,
+                                 post=self.head_controller[2])
+            else:
+                nengo.Connection(pre=self.current_head,
+                                 post=self.head_controller[2])
 
             nengo.Connection(pre=self.head_controller, post=self.head_error,
                              function=h_error)
@@ -199,32 +207,32 @@ class Head(nengo.Network):
             # Splitting controller and error into different ensembles should
             # increase accuracy of computation
 
-            self.eye_x_error = nengo.Ensemble(n_neurons=self.n_neurons,
+            self.eye_x_error = nengo.Ensemble(n_neurons=4 * self.n_neurons,
                                               dimensions=1,
                                               radius=self.angle_radius,
                                               label="Eye X error")
 
-            self.eye_y_error = nengo.Ensemble(n_neurons=self.n_neurons,
+            self.eye_y_error = nengo.Ensemble(n_neurons=4 * self.n_neurons,
                                               dimensions=1,
                                               radius=self.angle_radius,
                                               label="Eye Y error")
 
-            self.eye_x_controller = nengo.Ensemble(n_neurons=5 * self.n_neurons,
-                                                   dimensions=3,
+            self.eye_x_controller = nengo.Ensemble(n_neurons=8 * self.n_neurons,
+                                                   dimensions=4,
                                                    radius=self.angle_radius,
                                                    label="Eye X controller")
 
-            self.eye_y_controller = nengo.Ensemble(n_neurons=3 * self.n_neurons,
-                                                   dimensions=2,
+            self.eye_y_controller = nengo.Ensemble(n_neurons=6 * self.n_neurons,
+                                                   dimensions=3,
                                                    radius=self.angle_radius,
                                                    label="Eye Y controller")
 
-            self.current_eye_x = nengo.Ensemble(n_neurons=self.n_neurons,
+            self.current_eye_x = nengo.Ensemble(n_neurons=2 * self.n_neurons,
                                                 dimensions=1,
                                                 radius=self.angle_radius,
                                                 label="Current eye X")
 
-            self.current_eye_y = nengo.Ensemble(n_neurons=self.n_neurons,
+            self.current_eye_y = nengo.Ensemble(n_neurons=2 * self.n_neurons,
                                                 dimensions=1,
                                                 radius=self.angle_radius,
                                                 label="Current eye Y")
@@ -247,6 +255,15 @@ class Head(nengo.Network):
 
             nengo.Connection(self.eye_y_controller, self.eye_y_error,
                              function=e_y_error)
+
+            if external_feedback:
+                nengo.Connection(self.external_eye_x_error,
+                                 self.eye_x_controller[3])
+                nengo.Connection(self.external_eye_y_error,
+                                 self.eye_y_controller[2])
+            else:
+                nengo.Connection(self.current_eye_x, self.eye_x_controller[3])
+                nengo.Connection(self.current_eye_y, self.eye_y_controller[2])
 
             # Feedback from eye error
             nengo.Connection(
@@ -340,8 +357,13 @@ class Head(nengo.Network):
             nengo.Connection(self.one, self.done)
             self.absolute_error = nengo.Ensemble(self.n_neurons, 1)
             nengo.Connection(self.head_error, self.absolute_error,
-                             function=lambda x: 2 * x**2,
+                             function=lambda x: 2 * x ** 2,
                              synapse=self.tau)
             nengo.Connection(self.absolute_error, self.done.neurons,
                              transform=[[-3.]] * self.done.n_neurons)
             # endregion
+
+
+if __name__ == "__main__":
+    head1 = Head(np.asarray([0, 1, 0]))
+    head2 = Head(np.asarray([0, 1, 0]), external_feedback=True)
