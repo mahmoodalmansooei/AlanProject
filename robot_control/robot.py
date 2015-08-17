@@ -71,7 +71,8 @@ class Robot(nengo.Network):
                 self.control_container, size_out=2,
                 label="Head position control signal")
             # endregion
-            self.killswitch = ControlSignal(self.killswitch_container, size_out=1,
+            self.killswitch = ControlSignal(self.killswitch_container,
+                                            size_out=1,
                                             label="Killswitch")
         # region Node outputs set to their initial values
         self.control_container.add(self.actions, initial_actions.ravel())
@@ -259,6 +260,19 @@ class Robot(nengo.Network):
             self.killswitch_container.update(self.killswitch, 0)
         else:
             self.killswitch_container.update(self.killswitch, 1)
+
+    @property
+    def sensors(self):
+        return self.sensor_container
+
+    @property
+    def motors(self):
+        return self.motor_container
+
+    @property
+    def controls(self):
+        return self.control_container
+
 
 if __name__ == "__main__":
     mr_robot = Robot()
