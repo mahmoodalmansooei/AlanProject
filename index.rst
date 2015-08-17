@@ -6,8 +6,6 @@
 Welcome to The Alan Project's documentation!
 ============================================
 
-Contents:
-
 .. toctree::
    :maxdepth: 2
 
@@ -20,8 +18,6 @@ Contents:
    SNN utilities <robot_utils/README>
    
    Interface to neural simulation <robot_interface/README>
-   
-   Modules <modules>   
 
 Indices and tables
 ==================
