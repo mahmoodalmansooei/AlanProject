@@ -2,9 +2,9 @@ Alan Project general information
 ================================
 
 **The Imitation Game** will be a major contemporary art exhibition curated by Clare Gannaway at Manchester
-Art Gallery, UK, March-August 2016. Inspired by Manchester’s rich history of computer science, it will
+Art Gallery, UK, March-August 2016. Inspired by Manchester\'s rich history of computer science, it will
 feature eight international contemporary artists exploring the theme of machines and the imitation of life.
-The exhibition will be part of the cultural programme for Manchester’s role as **European City of Science** in
+The exhibition will be part of the cultural programme for Manchester\'s role as **European City of Science** in
 2016.
 
 Artist Tove Kjellmark (Sweden) is making a new artwork for The Imitation Game exhibition, opening March
