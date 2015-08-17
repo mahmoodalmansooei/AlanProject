@@ -19,8 +19,6 @@ class ActionSelectionExecution(nengo.Network):
         Params:
         *   finger on/off
         *   target = lips / general
-        :param dimensions:
-        :type dimensions:
         :param n_neurons:
         :type n_neurons:
         :param tau:
@@ -76,6 +74,9 @@ class ActionSelectionExecution(nengo.Network):
             # Control for the lips (passes head computed lip position
             # to the arm)
             self.lip_enable = nengo.Ensemble(4 * self.n_neurons, dimensions=2)
+            # Killswitch
+            self.killswitch = nengo.Ensemble(self.n_neurons, 1)
+
             # ------------------------------------------------------------------
             # endregion
             # region outputs
@@ -109,23 +110,23 @@ class ActionSelectionExecution(nengo.Network):
                              self.head_enable, synapse=0.01,
                              transform=[[-1]])
             nengo.Connection(self.action_execution.output[1],
-                             self.right_arm_enable, synapse=0.01,
+                             self.left_arm_enable, synapse=0.01,
                              transform=[[-1]])
             nengo.Connection(self.action_execution.output[2],
-                             self.left_arm_enable, synapse=0.01,
+                             self.right_arm_enable, synapse=0.01,
                              transform=[[-1]])
             self.one = nengo.Node(output=1)
 
             nengo.Connection(self.one, self.head_enable, synapse=0.01)
-            nengo.Connection(self.one, self.right_arm_enable, synapse=0.01)
             nengo.Connection(self.one, self.left_arm_enable, synapse=0.01)
+            nengo.Connection(self.one, self.right_arm_enable, synapse=0.01)
             # ------------------------------------------------------------------
             # endregion
             # region Right hand target selection and output
             # Basal ganglia selects between the sources of the target
             self.right_hand_position_selector = nengo.networks.BasalGanglia(
                 dimensions=2, n_neurons_per_ensemble=self.n_neurons,
-                net=nengo.Network("Hand target position selector"))
+                net=nengo.Network("Right hand target position selector"))
 
             # Inputs to the ganglia. In standard python code:
             # if lip_enable:
@@ -140,7 +141,7 @@ class ActionSelectionExecution(nengo.Network):
 
             self.right_hand_position_computer = nengo.networks.Thalamus(
                 dimensions=2, n_neurons_per_ensemble=2 * self.n_neurons,
-                net=nengo.Network("Hand target position computer"))
+                net=nengo.Network("Right hand target position computer"))
 
             nengo.Connection(self.right_hand_position_selector.output,
                              self.right_hand_position_computer.input)
@@ -181,7 +182,7 @@ class ActionSelectionExecution(nengo.Network):
             # Basal ganglia selects between the sources of the target
             self.left_hand_position_selector = nengo.networks.BasalGanglia(
                 dimensions=2, n_neurons_per_ensemble=self.n_neurons,
-                net=nengo.Network("Hand target position selector"))
+                net=nengo.Network("Left hand target position selector"))
 
             # Inputs to the ganglia. In standard python code:
             # if lip_enable:
@@ -196,7 +197,7 @@ class ActionSelectionExecution(nengo.Network):
 
             self.left_hand_position_computer = nengo.networks.Thalamus(
                 dimensions=2, n_neurons_per_ensemble=2 * self.n_neurons,
-                net=nengo.Network("Hand target position computer"))
+                net=nengo.Network("Left hand target position computer"))
 
             nengo.Connection(self.left_hand_position_selector.output,
                              self.left_hand_position_computer.input)
@@ -232,6 +233,11 @@ class ActionSelectionExecution(nengo.Network):
             nengo.Connection(self.left_hand_multiplier.output,
                              self.left_arm_target_position,
                              synapse=self.tau)
+            # endregion
+            # region Killswitch
+            nengo.Connection(self.killswitch, self.right_arm_enable)
+            nengo.Connection(self.killswitch, self.left_arm_enable)
+            nengo.Connection(self.killswitch, self.head_enable)
             # endregion
 
 
