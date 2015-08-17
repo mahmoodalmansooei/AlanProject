@@ -362,8 +362,3 @@ class Head(nengo.Network):
             nengo.Connection(self.absolute_error, self.done.neurons,
                              transform=[[-3.]] * self.done.n_neurons)
             # endregion
-
-
-if __name__ == "__main__":
-    head1 = Head(np.asarray([0, 1, 0]))
-    head2 = Head(np.asarray([0, 1, 0]), external_feedback=True)

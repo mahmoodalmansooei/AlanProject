@@ -239,7 +239,3 @@ class ActionSelectionExecution(nengo.Network):
             nengo.Connection(self.killswitch, self.left_arm_enable)
             nengo.Connection(self.killswitch, self.head_enable)
             # endregion
-
-
-if __name__ == "__main__":
-    selection = ActionSelectionExecution(3)

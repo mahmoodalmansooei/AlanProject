@@ -607,9 +607,3 @@ class Arm(nengo.Network):
             nengo.Connection(self.absolute_error, self.done.neurons,
                              transform=[[-3.]] * self.done.n_neurons)
             # endregion
-
-
-if __name__ == "__main__":
-    arm = Arm(np.zeros((3, 1)), np.zeros((3, 1)), np.zeros((3, 1)), 0)
-    arm = Arm(np.zeros((3, 1)), np.zeros((3, 1)), np.zeros((3, 1)), 0,
-              external_feedback=True)

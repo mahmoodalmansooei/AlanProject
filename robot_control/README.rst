@@ -1,5 +1,7 @@
-#Robot control
-##Contents
+Robot control
+=============
+
+
 The control system for the robot consists of several independent modules, with some level of interconnection:
 
 *   head controller
@@ -8,13 +10,15 @@ The control system for the robot consists of several independent modules, with s
 
 *   action selection (basically a meta-controller)
 
-##Using the classes
+Using the classes
+-----------------
 
 The entire control system for the robot is contained within the robot.py module. 
 In order to obtain useful behaviour from this class some inputs and outputs need to be connected to the system, as
 can be seen in the following diagram.
 
-![Robot module hierarchy](http://i.imgur.com/QU2lF4T.png)
+.. image:: http://i.imgur.com/QU2lF4T.png
+   alt:Robot module hierarchy
 
 The inputs to the system are:
 
