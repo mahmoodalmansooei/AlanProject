@@ -20,12 +20,12 @@ Requirements
 
 The following should work on all operating systems:
 
-+   `Python 2.7`_ with pip_ installed
++   `Python 2.7 <https://www.python.org/download/releases/2.7/>`_ with pip_ installed
 
 Windows specific
 ---------------- 
 
-+   `Microsoft Visual C++ Compiler for Python 2.7`_
++   `Microsoft Visual C++ Compiler for Python 2.7 < http://www.microsoft.com/en-gb/download/details.aspx?id=44266>`_
 
 Installation
 ------------ 
@@ -49,13 +49,7 @@ Running the software on SpiNNaker
 ---------------------------------
 
 
-Please follow the guide on the `Nengo SpiNNaker Github repo`_.
+Please follow the guide on the `Nengo SpiNNaker Github repo <https://github.com/project-rig/nengo_spinnaker>`_.
 
-
-.. _Python 2.7:https://www.python.org/download/releases/2.7/
 
 .. _pip: https://pip.pypa.io/en/stable/installing.html
-
-.. _Microsoft Visual C++ Compiler for Python 2.7:http://www.microsoft.com/en-gb/download/details.aspx?id=44266
-
-.. _Nengo SpiNNaker Github repo:https://github.com/project-rig/nengo_spinnaker
