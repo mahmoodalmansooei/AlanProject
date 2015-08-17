@@ -48,7 +48,7 @@ class Robot(nengo.Network):
         self.motor_container = Container()
         self.sensor_container = Container()
         self.control_container = Container()
-
+        self.killswitch_container = Container()
         with self:
             # region Control signals for the simulation
             self.actions = ControlSignal(self.control_container, size_out=3,
@@ -71,6 +71,8 @@ class Robot(nengo.Network):
                 self.control_container, size_out=2,
                 label="Head position control signal")
             # endregion
+            self.killswitch = ControlSignal(self.killswitch_container, size_out=1,
+                                            label="Killswitch")
         # region Node outputs set to their initial values
         self.control_container.add(self.actions, initial_actions.ravel())
         self.control_container.add(self.lip_enable, initial_lip_enable.ravel())
@@ -84,6 +86,7 @@ class Robot(nengo.Network):
                                    initial_left_finger_enable.ravel())
         self.control_container.add(self.head_position,
                                    initial_head_position.ravel())
+        self.killswitch_container.add(self.killswitch, 1)
         # endregion
         with self:
             # region Sensors
@@ -164,6 +167,8 @@ class Robot(nengo.Network):
                              self.right_arm.enable)
             nengo.Connection(self.action.left_arm_enable, self.left_arm.enable)
             nengo.Connection(self.action.head_enable, self.head.enable)
+
+            nengo.Connection(self.killswitch, self.action.killswitch)
 
             # Targets propagated to concerned components
             nengo.Connection(self.action.right_arm_target_position,
@@ -249,6 +254,11 @@ class Robot(nengo.Network):
                              self.left_arm.external_finger_error)
             # endregion
 
+    def enable(self, is_enabled):
+        if is_enabled:
+            self.killswitch_container.update(self.killswitch, 0)
+        else:
+            self.killswitch_container.update(self.killswitch, 1)
 
 if __name__ == "__main__":
     mr_robot = Robot()
