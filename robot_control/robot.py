@@ -272,3 +272,6 @@ class Robot(nengo.Network):
     @property
     def controls(self):
         return self.control_container
+
+if __name__== "__main__":
+    r = Robot()

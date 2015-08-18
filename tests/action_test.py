@@ -15,6 +15,7 @@ with model:
     lip_position = nengo.Node(testing_lip_position.ravel())
     left_hand_position = nengo.Node(testing_left_hand_position.ravel())
     right_hand_position = nengo.Node(testing_right_hand_position.ravel())
+    killswitch = nengo.Node(output=0)
 
     selection = robot_control.action.ActionSelectionExecution()
 
@@ -23,3 +24,4 @@ with model:
     nengo.Connection(lip_position, selection.lip_position)
     nengo.Connection(left_hand_position, selection.left_hand_position)
     nengo.Connection(right_hand_position, selection.right_hand_position)
+    nengo.Connection(killswitch, selection.killswitch)
