@@ -25,11 +25,16 @@ class SimulationControl(threading.Thread):
 
     def run(self):
         logger.log(logging.DEBUG, "Running the simulation in the " + self.name)
-        with self.simulator:
+
+        if hasattr(self.simulator, '__exit__'):
+            with self.simulator:
+                self.simulator.run(self.run_time)
+        else:
             self.simulator.run(self.run_time)
 
     def stop(self):
         """Stop a continuously running simulation or cut short a fixed
         length simulation"""
         logger.log(logging.DEBUG, "Stopping the " + self.name)
-        self.simulator.stop()
+        if hasattr(self.simulator, 'stop'):
+            self.simulator.stop()
