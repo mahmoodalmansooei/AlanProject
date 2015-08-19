@@ -4,6 +4,14 @@ robot_interface package
 Submodules
 ----------
 
+robot_interface.alan_robot module
+---------------------------------
+
+.. automodule:: robot_interface.alan_robot
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 robot_interface.container module
 --------------------------------
 

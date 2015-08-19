@@ -1,7 +1,7 @@
 __author__ = 'Petrut Bogdan'
 
 from robot_control.robot import Robot
-from robot_interface.simulation_control import SimulationControl
+from simulation_control import SimulationControl
 import nengo_spinnaker
 
 
