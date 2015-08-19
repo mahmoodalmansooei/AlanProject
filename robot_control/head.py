@@ -9,8 +9,10 @@ import warnings
 def h_error(x):
     """
     Squared-error function. Also gives the required direction of movement
+
     :param x: A vector consisting of the target orientation [1] and the current
-    number of degrees [0]
+        number of degrees [0]
+
     :type x: float[2]
     :return: The correction needed to match the target
     :rtype: float
@@ -22,8 +24,10 @@ def h_error(x):
 def e_x_error(x):
     """
     Squared-error function. Also gives the required direction of movement
+
     :param x: A vector consisting of the target position [0, 1], the current
-    position [2, 3] and the current head position
+        position [2, 3] and the current head position
+
     :type x: float[5]
     :return: The correction needed to match the target
     :rtype: float
@@ -37,8 +41,9 @@ def e_x_error(x):
 def e_y_error(x):
     """
     Squared-error function. Also gives the required direction of movement
+
     :param x: A vector consisting of the target position [0, 1], the current
-    position [2, 3] and the current head position
+        position [2, 3] and the current head position
     :type x: float[5]
     :return: The correction needed to match the target
     :rtype: float
@@ -62,43 +67,44 @@ class Head(nengo.Network):
         could achieve, i.e. similar head and eye movement speed
 
         Goals:
-        *    move eyes so that they snap onto the target
-        *    head rotates towards the target
-        *    eyes still face the target even while the head rotates
 
-        ========================================================================
+        *   move eyes so that they snap onto the target
+
+        *   head rotates towards the target
+
+        *   eyes still face the target even while the head rotates
 
         :param lips_position_offset: The position of the lips relative to the
-        origin of the system (center of the head)
-        :type lips_position_offset:numpy.ndarray
-        :param n_neurons:The standard number of neurons used in each ensemble
-        or ensemble array (some require a multiple of that)
-        :type n_neurons:int
-        :param length_radius:The radius of ensembles when computing lengths
-        :type length_radius:float
-        :param angle_radius:The radius of ensembles when computing angles
-        :type angle_radius:float
-        :param tau:Post-synaptic time constant (PSTC) to use for filtering.
-        :type tau:float
-        :param head_sensitivity:Reaction time constant for head rotation
-        :type head_sensitivity:float
-        :param eye_x_sensitivity:Reaction time constant for horizontal eye
-        movement
-        :type eye_x_sensitivity:float
-        :param eye_y_sensitivity:Reaction time constant for vertical eye
-        movement
-        :type eye_y_sensitivity:float
-        :param label:A descriptive label for the network
-        :type label:string
-        :param seed:Random number seed that will be fed to the random number
-        generator. Setting this seed makes the creation of the model a
-        deterministic process; however, each new ensemble in the network
-        advances the random number generator, so if the network creation
-        code changes, the entire model changes.
-        :type seed:int
-        :param add_to_container:Determines if this Network will be added to
-        the current container. Defaults to true iff currently with a Network.
-        :type add_to_container:bool
+            origin of the system (center of the head)
+        :type lips_position_offset: numpy.ndarray
+        :param n_neurons: The standard number of neurons used in each ensemble
+            or ensemble array (some require a multiple of that)
+        :type n_neurons: int
+        :param length_radius: The radius of ensembles when computing lengths
+        :type length_radius: float
+        :param angle_radius: The radius of ensembles when computing angles
+        :type angle_radius: float
+        :param tau: Post-synaptic time constant (PSTC) to use for filtering.
+        :type tau: float
+        :param head_sensitivity: Reaction time constant for head rotation
+        :type head_sensitivity: float
+        :param eye_x_sensitivity: Reaction time constant for horizontal eye
+            movement
+        :type eye_x_sensitivity: float
+        :param eye_y_sensitivity: Reaction time constant for vertical eye
+            movement
+        :type eye_y_sensitivity: float
+        :param label: A descriptive label for the network
+        :type label: string
+        :param seed: Random number seed that will be fed to the random number
+            generator. Setting this seed makes the creation of the model a
+            deterministic process; however, each new ensemble in the network
+            advances the random number generator, so if the network creation
+            code changes, the entire model changes.
+        :type seed: int
+        :param add_to_container: Determines if this Network will be added to
+            the current container. Defaults to true iff currently with a Network
+        :type add_to_container: bool
         """
         super(Head, self).__init__(label, seed, add_to_container)
         # region Variable assignment

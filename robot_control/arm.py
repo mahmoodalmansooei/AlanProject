@@ -49,20 +49,26 @@ class Arm(nengo.Network):
         The current implementation is compliant with the requirements of the
         Alan Project (art project for the Manchester Art Gallery).
         The arm will receive information from the outside world regarding:
+
         *   target position vector in world space
         *   control signal -- allowed to move the arm or not
+
         The arm will be initialised with these values:
+
         *   distances between joints (length of links):
             +   elbow in relation to the shoulder
             +   hand in relation to the elbow
         *   shoulder position
         *   shoulder constant offset (gamma)
+
         Assumptions:
+
         *   links between joints are straight and rigid
         *   links do not change length
         *   base position (shoulder) does not change
         *   target position can change
-        ========================================================================
+
+
         :param shoulder_position:
         :type shoulder_position:
         :param elbow_position:

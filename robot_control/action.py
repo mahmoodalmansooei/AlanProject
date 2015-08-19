@@ -13,12 +13,16 @@ class ActionSelectionExecution(nengo.Network):
                  label=None, seed=None, add_to_container=None):
         """
         Actions:
+
         *   move head [0]
         *   move left arm  [1]
         *   move right arm  [2]
+
         Params:
+
         *   finger on/off
         *   target = lips / general
+
         :param n_neurons:
         :type n_neurons:
         :param tau:

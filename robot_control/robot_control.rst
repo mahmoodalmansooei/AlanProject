@@ -1,46 +1,34 @@
-robot_control package
+Robot control package
 =====================
 
-Submodules
-----------
+Action
+------
 
-robot_control.action module
----------------------------
-
-.. automodule:: robot_control.action
+.. autoclass:: robot_control.action.ActionSelectionExecution
     :members:
     :undoc-members:
     :show-inheritance:
 
-robot_control.arm module
-------------------------
+Arm
+---
 
-.. automodule:: robot_control.arm
+.. autoclass:: robot_control.arm.Arm
     :members:
     :undoc-members:
     :show-inheritance:
 
-robot_control.head module
--------------------------
+Head
+----
 
-.. automodule:: robot_control.head
+.. autoclass:: robot_control.head.Head
     :members:
     :undoc-members:
     :show-inheritance:
 
-robot_control.robot module
---------------------------
+Robot
+-----
 
-.. automodule:: robot_control.robot
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: robot_control
+.. autoclass:: robot_control.robot.Robot
     :members:
     :undoc-members:
     :show-inheritance:
