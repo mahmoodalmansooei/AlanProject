@@ -7,7 +7,7 @@ Requirements
 Running the software requires a `Python 2.7 <https://www.python.org/download/releases/2.7/>`_ interpreter.
 This means it should run on all operating systems.
 
-Running such a large simulation with a real-time constraint requires the use of the ^^SpiNNaker^^ platform.
+Running such a large simulation with a real-time constraint requires the use of the **SpiNNaker** platform.
 As a result, the software in its current state does not support running the simulation via the provided
 interface on host, but running only the simulation on host
 
@@ -73,8 +73,8 @@ or manual installation from their Git repository
 
 For ``nengo_gui`` usage information visit their Github repository.
 
-Basic usage
------------
+Usage
+-----
 This section will only focus on usage of the simulation through the provided interface. For an
 in-depth look into how to run your own or modify existing nengo spiking neural network simulations,
 visit their documentation_ webpages.
@@ -136,20 +136,61 @@ being that the ``Simulator`` object that needs creating lives inside ``nengo_spi
 Simulation interface
 ^^^^^^^^^^^^^^^^^^^^
 
-The purpose of this interface is to allow people with no experience working with neural simulations using ``Nengo`` to
+The purpose of this interface is to allow people with no experience working
+with neural simulations using ``Nengo`` to
 abstract that part software and just use a few API calls to achieve their goals.
 
-For example, the following snippet of code is sufficient to place a neural simulation on a SpiNNaker board,
+For example, the following snippet of code is sufficient to place a neural
+simulation on a SpiNNaker board,
+
+.. note::
+
+    The example network is just proof how quickly and easily one can get the
+    software side of things up and running.
+    That being said, it's worth noting that the robot won't actually fit on
+    only one SpiNNaker board, instead needing
+    a 3 board toroid.
 
 .. code-block:: python
     :linenos:
 
-    from robot_interface.alan_robot import AlanRobot # Import the package
+    # Import the package
+    from robot_interface.alan_robot import AlanRobot
 
-    robot = AlanRobot(run_time=5, period=10) # Create an instance of the robot
-    robot.start_simulation() # Start the neural simulation
-    robot.enable_robot() # By default, the robot's motors can't be driven,
-                         # so this call enables the robot's motors
+    # Create an instance of the robot
+    robot = AlanRobot(run_time=5, period=10)
 
+    # Start the neural simulation
+    robot.start_simulation()
+
+    # By default, the robot's motors can't be driven,
+    # so this call enables the robot's motors
+    robot.enable_robot()
+
+
+In reality, the above is not all that useful as it does not allow modifying
+inputs or viewing outputs. These operations are handled by :class:`.Container`
+objects. The have the ability to update the value of an input
+(i.e. :class:`.Sensor`, :class:`.ControlSignal`) and act upon the
+value of an output (i.e. :class:`.Motor` using callbacks.
+
+.. code-block:: python
+    :linenos:
+    :emphasize-lines: 10
+
+    from __future__ import print_function
+    from robot_interface.alan_robot import AlanRobot
+
+    # Create an instance of the robot
+    robot = AlanRobot(run_time=5, period=10)
+
+    # Ask for a container of all motors in the robot
+    motors = robot.motors
+    # Act upon motor outputs -- print the name of the motors and its value
+    motors.set_default_callback(callback=lambda x, y: print(x, y))
+
+    # Start simulation and enable robot movement
+    robot.start_simulation()
+    robot.enable_robot()
 
 
