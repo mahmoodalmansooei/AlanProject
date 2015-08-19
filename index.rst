@@ -33,14 +33,6 @@ to treat the neural simulation as a black box if desired.
 
    User guide <docs/user_guide>
 
-   Robot control system <robot_control/README>
-   
-   Robot models <robot_models/README>
-   
-   SNN utilities <robot_utils/README>
-   
-   Interface to neural simulation <robot_interface/README>
-
 Indices and tables
 ==================
 

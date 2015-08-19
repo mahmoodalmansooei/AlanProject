@@ -29,13 +29,21 @@ will install all required dependencies automatically.
 
     The use of a ``virtualenv`` is recommended.
 
+.. warning::
+
+    The current ``pip`` installation of ``nengo`` and ``nengo_spinnaker`` are broken. It might be sensible to install them manually from their respective repositories_.
+
+.. _repositories: https://github.com/nengo/nengo
+
+
 .. code:: bash
 
     git clone https://github.com/pabogdan/AlanProject
     cd AlanProject
     python setup.py develop
 
-The last step is to
+The last step is to run the following script. This step will guide you through setting up a configuration file for
+communicating to a SpiNNaker board.
 
 .. code::
 
@@ -55,7 +63,7 @@ it: using pip
 
     [sudo] pip install nengo_gui
 
-or direct and guaranteed up-to-date installation from their Git repository
+or manual installation from their Git repository
 
 .. code-block:: bash
 
@@ -116,9 +124,32 @@ being that the ``Simulator`` object that needs creating lives inside ``nengo_spi
 
         Robot control<../robot_control/README>
 
+    The following are utilities for creating control systems in a spiking neural network setting. Not all of them
+    might have been used in the current implementation.
+
+    .. toctree::
+        :maxdepth: 2
+
+        SNN utilities <../robot_utils/README>
+
 
 Simulation interface
 ^^^^^^^^^^^^^^^^^^^^
+
+The purpose of this interface is to allow people with no experience working with neural simulations using ``Nengo`` to
+abstract that part software and just use a few API calls to achieve their goals.
+
+For example, the following snippet of code is sufficient to place a neural simulation on a SpiNNaker board,
+
+.. code-block:: python
+    :linenos:
+
+    from robot_interface.alan_robot import AlanRobot # Import the package
+
+    robot = AlanRobot(run_time=5, period=10) # Create an instance of the robot
+    robot.start_simulation() # Start the neural simulation
+    robot.enable_robot() # By default, the robot's motors can't be driven,
+                         # so this call enables the robot's motors
 
 
 
