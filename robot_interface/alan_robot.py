@@ -9,6 +9,7 @@ class AlanRobot(object):
     def __init__(self, run_time=None, period=None, **simulation_parameters):
         """
         This object is an interface for controlling the Robot simulation.
+
         :param run_time: How long to run the simulation for in seconds
         :type run_time: int
         :param period:  Duration of one period of the simulator. This determines
@@ -56,16 +57,40 @@ class AlanRobot(object):
 
     @property
     def controls(self):
+        """
+        Getter for controls container
+
+        :return: Container filled with all the controls feeding into the robot
+        :rtype: Container
+        """
         return self.robot.controls
 
     @property
     def sensors(self):
+        """
+        Getter for sensors container
+
+        :return: Container filled with all the sensors feeding into the robot
+        :rtype: Container
+        """
         return self.robot.sensors
 
     @property
     def motors(self):
+        """
+        Getter for motors container
+
+        :return: Container filled with all the motors in the robot
+        :rtype: Container
+        """
         return self.robot.motors
 
     @staticmethod
     def contents(container):
+        """
+        Returns a list of all the keys in the container
+
+        :return: a list of all the keys in the container
+        :rtype: list
+        """
         return container.dictionary.keys()
