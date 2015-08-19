@@ -4,12 +4,13 @@ import nengo
 
 
 class Motor(nengo.Node):
+    """
+        A motor is a type of node that sends live information back for
+        processing.
+    """
     def __init__(self, container, sampling_period=100, dt=0.001, label=None):
         """
-        A motor is a type of node that sends live information back for
-        processing. This is different from a standard node because it only
-        sends information at a certain frequency, not at every change due to
-        limitations in the communication channel.
+
         :param container: The object that receives information from the motor
         :type container: Container
         :param sampling_period: The period with which the motor sends information
@@ -21,24 +22,24 @@ class Motor(nengo.Node):
         :return: A motor node
         :rtype: Motor
         """
-        self.sampling_period = sampling_period * dt  # ms
+        self.sampling_period = sampling_period * dt  # seconds
         self.previous_time = - self.sampling_period
         self.container = container
         super(Motor, self).__init__(output=self.motor_output, size_in=1,
                                     label=label)
 
-    def motor_output(self, time, values):
+    def motor_output(self, time, value):
         """
-        Function that is called every time tick for outputting values from the
-        node.
+        Function that is called every time tick for outputting a value from the
+        node, but only updates the motor's value once every period * dt seconds.
+
+        Time is used for outputting with a specific frequency.
+
         :param time: The current simulation time
         :type time: float
-        :param values: The current values of the motor node (number of values
-        depends on the dimensionality of the node)
-        :type values: array of floats
-        :return: None
-        :rtype:
+        :param value: The current value of the motor node
+        :type value: floats
         """
         if time - self.previous_time >= self.sampling_period:
             self.previous_time = time
-            self.container.update(self, values)
+            self.container.update(self, value)

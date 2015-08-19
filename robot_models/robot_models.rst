@@ -1,46 +1,28 @@
-robot_models package
+Robot models package
 ====================
 
-Submodules
-----------
+Control signal
+--------------
 
-robot_models.control_signal module
-----------------------------------
 
-.. automodule:: robot_models.control_signal
+.. autoclass:: robot_models.control_signal.ControlSignal
     :members:
     :undoc-members:
     :show-inheritance:
 
-robot_models.motor module
--------------------------
+Motor
+-----
 
-.. automodule:: robot_models.motor
+
+.. autoclass:: robot_models.motor.Motor
     :members:
     :undoc-members:
     :show-inheritance:
 
-robot_models.sensor module
---------------------------
+Sensor
+------
 
-.. automodule:: robot_models.sensor
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-robot_models.servo module
--------------------------
-
-.. automodule:: robot_models.servo
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: robot_models
+.. autoclass:: robot_models.sensor.Sensor
     :members:
     :undoc-members:
     :show-inheritance:
