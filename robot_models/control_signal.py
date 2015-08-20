@@ -4,12 +4,10 @@ import nengo
 
 
 class ControlSignal(nengo.Node):
-    """
-        A node that controls the operation of the robot simulation by providing
-        inputs to action selection and execution.
-    """
     def __init__(self, container, size_out, label=None):
         """
+        A node that controls the operation of the robot simulation by providing
+        inputs to action selection and execution.
 
         :param container: The object that receives information from the node
         :type container: Container

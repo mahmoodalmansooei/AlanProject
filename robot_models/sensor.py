@@ -4,12 +4,10 @@ import nengo
 
 
 class Sensor(nengo.Node):
-    """
-        A sensor is a type of node that inputs values into a simulation. It
-        could represent the feedback value from a motor.
-    """
     def __init__(self, container, label=None):
         """
+        A sensor is a type of node that inputs values into a simulation. It
+        could represent the feedback value from a motor.
 
         :param container: The object that receives information from the sensor
         :type container: Container

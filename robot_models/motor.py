@@ -4,12 +4,10 @@ import nengo
 
 
 class Motor(nengo.Node):
-    """
-        A motor is a type of node that sends live information back for
-        processing.
-    """
     def __init__(self, container, sampling_period=100, dt=0.001, label=None):
         """
+        A motor is a type of node that sends live information back for
+        processing.
 
         :param container: The object that receives information from the motor
         :type container: Container
