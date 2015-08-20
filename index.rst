@@ -32,11 +32,3 @@ to treat the neural simulation as a black box if desired.
    Examples <docs/examples>
 
    User guide <docs/user_guide>
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
