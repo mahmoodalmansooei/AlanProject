@@ -12,7 +12,7 @@ class Container(object):
         Can be run in a ContainerThread.
 
         :param default_callback: a default callback for all the elements in the
-        container
+            container
         :type default_callback: callable
         """
         self.default_callback = default_callback
@@ -25,10 +25,10 @@ class Container(object):
         """
         Add the key to the container with an initial value
 
-        :param key:
-        :type key:
-        :param value:
-        :type value:
+        :param key: The :py:mod:`.robot_models` object to track
+        :type key: class from :py:mod:`.robot_models`
+        :param value: The value associated with the key
+        :type value: float
         """
         self.dictionary[key] = value
 
@@ -37,12 +37,13 @@ class Container(object):
         This method should only be used to update inputs (i.e. sensors and
         control signals), not outputs such as motors.
 
-        :param key:
-        :type key:
-        :param value:
-        :type value:
-        :param callback:
-        :type callback:
+        :param key: The :py:mod:`.robot_models` object to track
+        :type key: class from :py:mod:`.robot_models`
+        :param value: The value associated with the key
+        :type value: float
+        :param callback: The method to be called when a value is updated. Leave
+            as None to use default callback.
+        :type callback: callable
         """
         callback = callback if callback else self.default_callback
         self.dictionary[key] = value
@@ -51,17 +52,20 @@ class Container(object):
 
     def set_default_callback(self, callback):
         """
+        Assigns a default callback to the container.
 
-        :param callback:
-        :type callback:
-        :return:
-        :rtype:
+        :param callback: The default method to be called when a value is updated
+        :type callback: callable
         """
         self.default_callback = callback
         if callback:
             assert callable(callback)
 
     def __getitem__(self, item):
+        """
+            See documentation for :py:meth:`~object.__getitem__` in Python
+            docs.
+        """
         return self.dictionary[item]
 
 
