@@ -16,11 +16,10 @@ class AlanRobot(object):
             how much memory will be allocated to store
             precomputed and probed data.
         :type period: float or None
-        :param simulation_parameters: Parameters of the Robot Network. See Robot
-            docs for a list of the parameters and what they each represent.
+        :param simulation_parameters: Parameters of the Robot Network. See
+            :class:`.Robot` for a list of the parameters and what
+            they each represent.
         :type simulation_parameters: dict
-        :return: An AlanRobot object
-        :rtype: AlanRobot
         """
         if simulation_parameters:
             self.robot = Robot(simulation_parameters)
