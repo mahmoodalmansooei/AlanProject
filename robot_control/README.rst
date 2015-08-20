@@ -8,7 +8,17 @@ The control system for the robot consists of several independent modules, with s
 
 *   arm controller (one for each arm)
 
-*   action selection (basically a meta-controller)
+*   action selection (could be considered a meta-controller)
+
+Head
+----
+
+Arm
+---
+
+Action selection
+----------------
+
 
 Using the classes
 -----------------
@@ -18,7 +28,7 @@ In order to obtain useful behaviour from this class some inputs and outputs need
 can be seen in the following diagram.
 
 .. image:: http://i.imgur.com/QU2lF4T.png
-   alt: Robot module hierarchy
+   :alt: Robot module hierarchy
 
 The inputs to the system are:
 
@@ -45,5 +55,4 @@ The inputs to the system are:
 
 The outputs are the motors and the done signal.
 
-Some extra inputs are required into the system to make the movement accurate: feedback from motors. 
-**These still need to be added.**
+Some extra inputs are required into the system to make the movement accurate: feedback from motors.

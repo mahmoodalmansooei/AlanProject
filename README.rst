@@ -10,46 +10,69 @@ The exhibition will be part of the cultural programme for Manchester\'s role as 
 Artist Tove Kjellmark (Sweden) is making a new artwork for The Imitation Game exhibition, opening March
 2016, in the form of two **human-like robots** which will sit in leather armchairs in the gallery and converse
 with each other on topics yet to be decided. They will **detect and acknowledge the presence of human
-visitors** to the gallery through **movement and speech**. Tove is currently working with staff and students at
-KTH, Stockholm, to begin the building process, and she will also work collaboratively with academics and
-students at The University of Manchester to embed SpiNNaker technology into the robots to affect their
-behaviour.
+visitors** to the gallery through **movement and speech**.
 
 Requirements
------------- 
+------------
 
-The following should work on all operating systems:
+Running the software requires a `Python 2.7 <https://www.python.org/download/releases/2.7/>`_ interpreter.
+This means it should run on all operating systems.
 
-+   `Python 2.7 <https://www.python.org/download/releases/2.7/>`_ with pip_ installed
+Running such a large simulation with a real-time constraint requires the use of the ^^SpiNNaker^^ platform.
+As a result, the software in its current state does not support running the simulation via the provided
+interface on host, but running only the simulation on host
+
 
 Windows specific
----------------- 
+^^^^^^^^^^^^^^^^
 
-+   `Microsoft Visual C++ Compiler for Python 2.7 <http://www.microsoft.com/en-gb/download/details.aspx?id=44266>`_
+Windows users need to install the  `Microsoft Visual C++ Compiler for Python 2.7 <http://www.microsoft.com/en-gb/download/details.aspx?id=44266>`_
+which is used when installing the ``numpy`` package.
+
 
 Installation
------------- 
+------------
 
-In a terminal run the following commands (might require administrator privilege):
+The easiest way to install everything is to clone the Alan Project repository, then run ``setup.py``. This
+will install all required dependencies automatically.
 
-`pip install numpy`
-    
-`pip install nengo_gui`
+.. note::
 
-If you want to run simulations on SpiNNaker you will also need to install the SpiNNaker Nengo library
+    The use of a ``virtualenv`` is recommended.
 
-`pip install nengo_spinnaker`
+.. code:: bash
 
-Running the software locally
-----------------------------
+    git clone https://github.com/pabogdan/AlanProject
+    cd AlanProject
+    python setup.py develop
 
-In order to start the GUI you only need to type `nengo_gui` into the terminal as the previously installed package should be on the PATH already.
+The last step is to
 
-Running the software on SpiNNaker
----------------------------------
+.. code::
 
+    nengo_spinnaker_setup
 
-Please follow the guide on the `Nengo SpiNNaker Github repo <https://github.com/project-rig/nengo_spinnaker>`_.
+Optional
+^^^^^^^^
 
+Installing the ``scipy`` package would increase the accuracy of the basal ganglia in the neural
+simulation. This needs to be installed separately if desired.
 
-.. _pip: https://pip.pypa.io/en/stable/installing.html
+Installing the ``nengo_gui`` package would allow for running graphically interactive neural simulations
+with the possibility of viewing live output from it. There are two types of installations available for
+it: using pip
+
+.. code-block:: bash
+
+    [sudo] pip install nengo_gui
+
+or direct and guaranteed up-to-date installation from their Git repository
+
+.. code-block:: bash
+
+    git clone https://github.com/nengo/nengo_gui
+    cd nengo_gui
+    python setup.py develop
+
+For ``nengo_gui`` usage information visit their Github repository.
+

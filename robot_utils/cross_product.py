@@ -10,29 +10,30 @@ _vector = np.zeros((3, 1))
 
 
 class CrossProduct(Network):
-    def __init__(self, n_neurons, radius=1.0,
+    def __init__(self, n_neurons=100, radius=1.0,
                  label=None, seed=None,
-                 add_to_container=None, **ens_kwargs):
+                 add_to_container=None):
         """
-        Cross product between two 3x1 vectors
-        :param n_neurons:
-        :type n_neurons:
-        :param radius:
-        :type radius:
-        :param label:
-        :type label:
-        :param seed:
-        :type seed:
-        :param add_to_container:
-        :type add_to_container:
-        :param ens_kwargs:
-        :type ens_kwargs:
-        :return:
-        :rtype:
+        Cross product between two 3x1 vectors.
+
+        :param n_neurons: The number of neurons.
+        :type n_neurons: int defaults to 100
+        :param radius: The range of values that can be represented
+        :type radius: float
+        :param label: Name of the model. Defaults to None.
+        :type label: str
+        :param seed: Random number seed that will be fed to the random
+            number generator. Setting this seed makes the creation of the
+            model a deterministic process; however, each new ensemble
+            in the network advances the random number generator, so if
+            the network creation code changes, the entire model changes.
+        :type seed: int
+        :param add_to_container: Determines if this Network will be added to
+            the current container. Defaults to true iff currently with a Network
+        :type add_to_container: bool
         """
         super(CrossProduct, self).__init__(label, seed,
                                            add_to_container)
-        self.config[nengo.Ensemble].update(ens_kwargs)
         self.n_neurons = n_neurons
         self.radius = radius
 

@@ -7,9 +7,17 @@ from robot_utils.matrix_multiplication import MatrixMultiplication
 from enum import IntEnum
 
 
-class HandType(IntEnum):
+class ArmType(IntEnum):
+    """
+        Used when instantiating an arm and influences the way arm moves to reach
+        a given target.
+    """
+
     LEFT = -1
+    """Indicates that the arm is for the left side of the body."""
+
     RIGHT = 1
+    """Indicates that the arm is for the right side of the body."""
 
 
 def _alpha_error(x):
@@ -38,7 +46,7 @@ class Arm(nengo.Network):
     def __init__(self, shoulder_position, elbow_position, hand_position, gamma,
                  n_neurons=100, length_radius=1.7, tau=0.2,
                  shoulder_sensitivity=2., elbow_sensitivity=2.,
-                 finger_sensitivity=2.0, arm_type=HandType.RIGHT,
+                 finger_sensitivity=2.0, arm_type=ArmType.RIGHT,
                  external_feedback=False, label=None,
                  seed=None, add_to_container=None):
         """
@@ -49,48 +57,61 @@ class Arm(nengo.Network):
         The current implementation is compliant with the requirements of the
         Alan Project (art project for the Manchester Art Gallery).
         The arm will receive information from the outside world regarding:
+
         *   target position vector in world space
         *   control signal -- allowed to move the arm or not
+
         The arm will be initialised with these values:
+
         *   distances between joints (length of links):
             +   elbow in relation to the shoulder
             +   hand in relation to the elbow
         *   shoulder position
         *   shoulder constant offset (gamma)
+
         Assumptions:
+
         *   links between joints are straight and rigid
         *   links do not change length
         *   base position (shoulder) does not change
         *   target position can change
-        ========================================================================
-        :param shoulder_position:
-        :type shoulder_position:
-        :param elbow_position:
-        :type elbow_position:
-        :param hand_position:
-        :type hand_position:
-        :param gamma:
-        :type gamma:
-        :param n_neurons:
-        :type n_neurons:
-        :param length_radius:
-        :type length_radius:
-        :param tau:
-        :type tau:
-        :param shoulder_sensitivity:
-        :type shoulder_sensitivity:
-        :param elbow_sensitivity:
-        :type elbow_sensitivity:
-        :param finger_sensitivity:
-        :type finger_sensitivity:
-        :param label:
-        :type label:
-        :param seed:
-        :type seed:
-        :param add_to_container:
-        :type add_to_container:
-        :return:
-        :rtype:
+
+
+        :param shoulder_position: The position of the shoulder in relation to
+            the center of the robot's head
+        :type shoulder_position: numpy.ndarray
+        :param elbow_position: The position of the elbow in relation to
+            the robot's shoulder
+        :type elbow_position: numpy.ndarray
+        :param hand_position: The position of the hand in relation to
+            the robot's elbow
+        :type hand_position: numpy.ndarray
+        :param gamma: The "forward" incline of the upper arm
+        :type gamma: float
+        :param n_neurons: The number of neurons.
+        :type n_neurons: int
+        :param length_radius: The range of values that can be represented when
+            referring to length
+        :type length_radius: float
+        :param tau: post synaptic time constant
+        :type tau: float
+        :param shoulder_sensitivity: how much to scale the motor output by
+        :type shoulder_sensitivity: float
+        :param elbow_sensitivity: how much to scale the motor output by
+        :type elbow_sensitivity: float
+        :param finger_sensitivity: how much to scale the motor output by
+        :type finger_sensitivity: float
+        :param label: Name of the model. Defaults to None.
+        :type label: str
+        :param seed: Random number seed that will be fed to the random
+            number generator. Setting this seed makes the creation of the
+            model a deterministic process; however, each new ensemble
+            in the network advances the random number generator, so if
+            the network creation code changes, the entire model changes.
+        :type seed: int
+        :param add_to_container: Determines if this Network will be added to
+            the current container. Defaults to true iff currently with a Network
+        :type add_to_container: bool, optional
         """
         super(Arm, self).__init__(label, seed, add_to_container)
         # region Variable assignment
@@ -607,3 +628,7 @@ class Arm(nengo.Network):
             nengo.Connection(self.absolute_error, self.done.neurons,
                              transform=[[-3.]] * self.done.n_neurons)
             # endregion
+
+
+if __name__ == "__main__":
+    arm = Arm(_position_vector, _position_vector, _position_vector, 0)

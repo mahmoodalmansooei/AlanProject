@@ -9,17 +9,43 @@ def product(x):
     return x[0] * x[1]
 
 
-_matrix = np.eye(3)
-_vector = np.zeros((3, 1))
-
-
 class MatrixMultiplication(nengo.Network):
-    def __init__(self, n_neurons, matrix_A=_matrix, matrix_B=_vector,
+    def __init__(self, n_neurons=100, matrix_A=np.eye(3), matrix_B=np.zeros((3, 1)),
                  radius=1.0, label=None, seed=None,
-                 add_to_container=None, **ens_kwargs):
+                 add_to_container=None):
+
+        """
+        A network that does matrix multiplication based on two previously
+        provided matrices that have the same shapes as the ones to be
+        multiplied. For a more detailed presentation see this_ Nengo
+        example.
+
+        .. _this: https://pythonhosted.org/nengo/examples/matrix_multiplication.html
+
+        :param n_neurons: The number of neurons.
+        :type n_neurons: int
+        :param matrix_A: A matrix that looks like the first one to be multiplied
+            (the shape is the same, values are irrelevant)
+        :type matrix_A: numpy.ndarray
+        :param matrix_B: A matrix that looks like the first one to be multiplied
+            (the shape is the same, values are irrelevant)
+        :type matrix_B: numpy.ndarray
+        :param radius: The min and max value to be represented
+        :type radius: float
+        :param label: Name of the model. Defaults to None.
+        :type label: str
+        :param seed: Random number seed that will be fed to the random
+            number generator. Setting this seed makes the creation of the
+            model a deterministic process; however, each new ensemble
+            in the network advances the random number generator, so if
+            the network creation code changes, the entire model changes.
+        :type seed: int
+        :param add_to_container: Determines if this Network will be added to
+            the current container. Defaults to true iff currently with a Network
+        :type add_to_container: bool
+        """
         super(MatrixMultiplication, self).__init__(label, seed,
                                                    add_to_container)
-        self.config[nengo.Ensemble].update(ens_kwargs)
         self.n_neurons = n_neurons
         self.radius = radius
         self.matrix_A = matrix_A

@@ -12,22 +12,24 @@ class VectorDifference(Network):
         Module that computes the difference between two vectors of the same
         dimension. In a mathematical, vectorial sense, A - B computes the vector
         pointing from B to A.
+
         :param n_neurons: numbered of neurons used to represent each value
         :type n_neurons: int
         :param dimensions: the number of dimensions in each vector
         :type dimensions: int
         :param radius: value representable by the ensembles
         :type radius: float
-        :param label:
-        :type label:
-        :param seed:
-        :type seed:
-        :param add_to_container:
-        :type add_to_container:
-        :param ens_kwargs:
-        :type ens_kwargs:
-        :return:
-        :rtype:
+        :param label: Name of the model. Defaults to None.
+        :type label: str
+        :param seed: Random number seed that will be fed to the random
+            number generator. Setting this seed makes the creation of the
+            model a deterministic process; however, each new ensemble
+            in the network advances the random number generator, so if
+            the network creation code changes, the entire model changes.
+        :type seed: int
+        :param add_to_container: Determines if this Network will be added to
+            the current container. Defaults to true iff currently with a Network
+        :type add_to_container: bool
         """
         super(VectorDifference, self).__init__(label, seed,
                                                add_to_container)

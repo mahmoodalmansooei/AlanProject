@@ -15,19 +15,27 @@
 import sys
 import os
 import shlex
-from recommonmark.parser import CommonMarkParser
 
-source_parsers = {
-    '.md': CommonMarkParser,
-}
+
+def skip(app, what, name, obj, skip, options):
+    if name == "__init__" or name == "__getitem__":
+        return False
+    return skip
+
+
+def setup(app):
+    app.connect("autodoc-skip-member", skip)
+
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('robot_control'))
-sys.path.insert(1, os.path.abspath('robot_interface'))
-sys.path.insert(2, os.path.abspath('robot_modules'))
-sys.path.insert(3, os.path.abspath('robot_utils'))
+
+sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(1, os.path.abspath('robot_control'))
+sys.path.insert(2, os.path.abspath('robot_interface'))
+sys.path.insert(3, os.path.abspath('robot_modules'))
+sys.path.insert(4, os.path.abspath('robot_utils'))
 
 # -- General configuration ------------------------------------------------
 
@@ -42,7 +50,14 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.pngmath',
     'sphinx.ext.viewcode',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.autosummary'
 ]
+
+intersphinx_mapping = {'python': ('https://docs.python.org/2', None),
+                       'nengo': ('https://pythonhosted.org/nengo/', None),
+                       'nengo_spinnaker':('http://nengo-spinnaker.readthedocs.org/en/latest/', None),
+                       'numpy':('http://docs.scipy.org/doc/numpy/', None)}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -50,7 +65,7 @@ templates_path = ['_templates']
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 # source_suffix = ['.rst', '.md']
-source_suffix = ['.md', '.rst']
+source_suffix = ['.rst']
 
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'

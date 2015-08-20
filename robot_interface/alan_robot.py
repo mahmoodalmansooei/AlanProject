@@ -1,7 +1,7 @@
 __author__ = 'Petrut Bogdan'
 
 from robot_control.robot import Robot
-from robot_interface.simulation_control import SimulationControl
+from simulation_control import SimulationControl
 import nengo_spinnaker
 
 
@@ -9,17 +9,17 @@ class AlanRobot(object):
     def __init__(self, run_time=None, period=None, **simulation_parameters):
         """
         This object is an interface for controlling the Robot simulation.
+
         :param run_time: How long to run the simulation for in seconds
         :type run_time: int
         :param period:  Duration of one period of the simulator. This determines
             how much memory will be allocated to store
             precomputed and probed data.
         :type period: float or None
-        :param simulation_parameters: Parameters of the Robot Network. See Robot
-            docs for a list of the parameters and what they each represent.
+        :param simulation_parameters: Parameters of the Robot Network. See
+            :class:`.Robot` for a list of the parameters and what
+            they each represent.
         :type simulation_parameters: dict
-        :return: An AlanRobot object
-        :rtype: AlanRobot
         """
         if simulation_parameters:
             self.robot = Robot(simulation_parameters)
@@ -56,16 +56,40 @@ class AlanRobot(object):
 
     @property
     def controls(self):
+        """
+        Getter for controls container
+
+        :return: Container filled with all the controls feeding into the robot
+        :rtype: Container
+        """
         return self.robot.controls
 
     @property
     def sensors(self):
+        """
+        Getter for sensors container
+
+        :return: Container filled with all the sensors feeding into the robot
+        :rtype: Container
+        """
         return self.robot.sensors
 
     @property
     def motors(self):
+        """
+        Getter for motors container
+
+        :return: Container filled with all the motors in the robot
+        :rtype: Container
+        """
         return self.robot.motors
 
     @staticmethod
     def contents(container):
+        """
+        Returns a list of all the keys in the container
+
+        :return: a list of all the keys in the container
+        :rtype: list
+        """
         return container.dictionary.keys()

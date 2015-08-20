@@ -2,7 +2,7 @@ __author__ = 'Petrut Bogdan'
 
 import nengo
 import numpy as np
-from arm import Arm, HandType
+from arm import Arm, ArmType
 from head import Head
 from action import ActionSelectionExecution
 from robot_interface.container import Container
@@ -27,6 +27,76 @@ class Robot(nengo.Network):
                  initial_head_position=np.array([0, 0]),
                  external_feedback=False, label=None, seed=None,
                  add_to_container=None):
+        """
+        This class encapsulates all of the components that control a robot.
+        In this case: two :py:class:`.Arm` s, a :py:class:`.Head` ,
+        and a block that could be loosely defined as a
+        cortex-basal ganglia-thalamus loop (the
+        :py:class:`.ActionSelectionExecution` block).
+
+        :param n_neurons: The number of neurons.
+        :type n_neurons: int
+        :param radius: The range of values that can be represented
+        :type radius: float
+        :param idle_left_hand_position: The target position for the left hand
+            when not given a specific target
+        :type idle_left_hand_position: numpy.ndarray
+        :param idle_right_hand_position: The target position for the right hand
+            when not given a specific target
+        :type idle_right_hand_position: numpy.ndarray
+        :param gamma: The "forward" incline of the upper arm
+        :type gamma: float
+        :param shoulder_width: The distance from the base of the neck to the
+            shoulder.
+        :type shoulder_width: float
+        :param neck_length: The distance from the base of the neck to the
+            center of the head.
+        :type neck_length: float
+        :param upper_arm_length: The distance from the shoulder to the elbow.
+        :type upper_arm_length: float
+        :param lower_arm_length: The distance from the elbow to the finger.
+        :type lower_arm_length: float
+        :param lip_distance: The distance from the center of the head to
+            the lips.
+        :type lip_distance: float
+        :param tau: post synaptic time constant
+        :type tau: float
+        :param shoulder_sensitivity: how much to scale the motor output by
+        :type shoulder_sensitivity: float
+        :param elbow_sensitivity: how much to scale the motor output by
+        :type elbow_sensitivity: float
+        :param finger_sensitivity: how much to scale the motor output by
+        :type finger_sensitivity: float
+        :param sampling_period: The period which dictates how often the
+            motors react to changes.
+        :type sampling_period: float
+        :param dt: timestep
+        :type dt: float
+        :param initial_actions:
+        :type initial_actions: numpy.ndarray
+        :param initial_lip_enable:
+        :type initial_lip_enable: numpy.ndarray
+        :param initial_left_finger_enable:
+        :type initial_left_finger_enable: numpy.ndarray
+        :param initial_right_finger_enable:
+        :type initial_right_finger_enable: numpy.ndarray
+        :param initial_head_position:
+        :type initial_head_position: numpy.ndarray
+        :param external_feedback: Selects if the system should allow for
+            external feedback from sensors.
+        :type external_feedback: bool
+        :param label: Name of the model. Defaults to None.
+        :type label: str
+        :param seed: Random number seed that will be fed to the random
+            number generator. Setting this seed makes the creation of the
+            model a deterministic process; however, each new ensemble
+            in the network advances the random number generator, so if
+            the network creation code changes, the entire model changes.
+        :type seed: int
+        :param add_to_container: Determines if this Network will be added to
+            the current container. Defaults to true iff currently with a Network
+        :type add_to_container: bool
+        """
         super(Robot, self).__init__(label, seed, add_to_container)
         # region Variable assignment
         self.finger_sensitivity = finger_sensitivity
@@ -142,14 +212,14 @@ class Robot(nengo.Network):
             # region Links
             self.right_arm = Arm(self.shoulder_position, self.elbow_position,
                                  self.hand_position, self.gamma,
-                                 arm_type=HandType.RIGHT,
+                                 arm_type=ArmType.RIGHT,
                                  n_neurons=self.n_neurons,
                                  external_feedback=external_feedback,
                                  seed=seed,
                                  label="Right arm controller")
             self.left_arm = Arm(self.shoulder_position, self.elbow_position,
                                 self.hand_position, self.gamma,
-                                arm_type=HandType.LEFT,
+                                arm_type=ArmType.LEFT,
                                 n_neurons=self.n_neurons,
                                 external_feedback=external_feedback,
                                 seed=seed,
@@ -256,6 +326,12 @@ class Robot(nengo.Network):
             # endregion
 
     def enable(self, is_enabled):
+        """
+        Enable or disable all the motors in the robot.
+        :param is_enabled: Parameter which selects whether to enable or disable
+            the motors.
+        :type is_enabled: bool
+        """
         if is_enabled:
             self.killswitch_container.update(self.killswitch, 0)
         else:
@@ -263,12 +339,39 @@ class Robot(nengo.Network):
 
     @property
     def sensors(self):
+        """
+        Property that returns the container with all the sensors within the
+        robot
+
+        :return: container with all the sensors within the
+            robot
+        :rtype: Container
+        """
         return self.sensor_container
 
     @property
     def motors(self):
+        """
+        Property that returns the container with all the motors within the
+        robot
+
+        :return: the container with all the motors within the
+            robot
+        :rtype: Container
+        """
         return self.motor_container
 
     @property
     def controls(self):
+        """
+        Property that returns the container with all the controls within the
+        robot
+
+        :return: container with all the controls within the
+            robot
+        :rtype: Container
+        """
         return self.control_container
+
+if __name__== "__main__":
+    r = Robot()

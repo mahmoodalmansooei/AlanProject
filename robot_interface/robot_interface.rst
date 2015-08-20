@@ -1,30 +1,38 @@
-robot_interface package
+Robot interface package
 =======================
 
-Submodules
+
+
+Alan robot
 ----------
 
-robot_interface.container module
---------------------------------
-
-.. automodule:: robot_interface.container
+.. autoclass:: robot_interface.alan_robot.AlanRobot
     :members:
     :undoc-members:
     :show-inheritance:
 
-robot_interface.simulation_control module
------------------------------------------
+Container
+---------
 
-.. automodule:: robot_interface.simulation_control
+.. autoclass:: robot_interface.container.Container
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Threaded container
+------------------
+
+.. autoclass:: robot_interface.container.ContainerThread
     :members:
     :undoc-members:
     :show-inheritance:
 
 
-Module contents
----------------
+Simulation control
+------------------
 
-.. automodule:: robot_interface
+.. autoclass:: robot_interface.simulation_control.SimulationControl
     :members:
     :undoc-members:
     :show-inheritance:
+

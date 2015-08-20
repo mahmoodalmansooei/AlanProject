@@ -13,24 +13,33 @@ class ActionSelectionExecution(nengo.Network):
                  label=None, seed=None, add_to_container=None):
         """
         Actions:
+
         *   move head [0]
         *   move left arm  [1]
         *   move right arm  [2]
+
         Params:
+
         *   finger on/off
         *   target = lips / general
-        :param n_neurons:
-        :type n_neurons:
-        :param tau:
-        :type tau:
-        :param label:
-        :type label:
-        :param seed:
-        :type seed:
-        :param add_to_container:
-        :type add_to_container:
-        :return: a new action selection and execution network
-        :rtype: ActionSelectionExecution
+
+        :param n_neurons: The number of neurons.
+        :type n_neurons: int
+        :param radius: The range of values that can be represented
+        :type radius: float
+        :param tau: post synaptic time constant
+        :type tau: float
+        :param label: Name of the model. Defaults to None.
+        :type label: str
+        :param seed: Random number seed that will be fed to the random
+            number generator. Setting this seed makes the creation of the
+            model a deterministic process; however, each new ensemble
+            in the network advances the random number generator, so if
+            the network creation code changes, the entire model changes.
+        :type seed: int
+        :param add_to_container: Determines if this Network will be added to
+            the current container. Defaults to true iff currently with a Network
+        :type add_to_container: bool
         """
         super(ActionSelectionExecution, self).__init__(label, seed,
                                                        add_to_container)
