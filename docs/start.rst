@@ -130,7 +130,7 @@ being that the ``Simulator`` object that needs creating lives inside ``nengo_spi
     .. toctree::
         :maxdepth: 2
 
-        SNN utilities <../robot_utils/README>
+        SNN utilities <../robot_utils/robot_utils>
 
 
 Simulation interface
@@ -193,4 +193,8 @@ value of an output (i.e. :class:`.Motor` using callbacks.
     robot.start_simulation()
     robot.enable_robot()
 
+The highlighted line shows the setting of the default callback, and as a result
+every time the value of any of the motors is updated the callback is triggered.
+In the given example, the value output by the neural simulation for a specific
+motor is printed to standard output.
 
