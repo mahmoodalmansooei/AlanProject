@@ -53,7 +53,8 @@ extensions = [
     'sphinx.ext.intersphinx',
 ]
 
-intersphinx_mapping = {'python': ('https://docs.python.org/2', None)}
+intersphinx_mapping = {'python': ('https://docs.python.org/2', None),
+                       'nengo': ('https://pythonhosted.org/nengo/', None)}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
