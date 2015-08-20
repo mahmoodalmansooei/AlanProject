@@ -10,7 +10,7 @@ def product(x):
 
 
 class MatrixMultiplication(nengo.Network):
-    def __init__(self, n_neurons, matrix_A=np.eye(3), matrix_B=np.zeros((3, 1)),
+    def __init__(self, n_neurons=100, matrix_A=np.eye(3), matrix_B=np.zeros((3, 1)),
                  radius=1.0, label=None, seed=None,
                  add_to_container=None):
 

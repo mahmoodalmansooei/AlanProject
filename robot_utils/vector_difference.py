@@ -19,18 +19,17 @@ class VectorDifference(Network):
         :type dimensions: int
         :param radius: value representable by the ensembles
         :type radius: float
-        :param label:  str, optional
-        :type label: Name of the model. Defaults to None.
-        :param seed: int, optional
-        :type seed: Random number seed that will be fed to the random
+        :param label: Name of the model. Defaults to None.
+        :type label: str
+        :param seed: Random number seed that will be fed to the random
             number generator. Setting this seed makes the creation of the
             model a deterministic process; however, each new ensemble
             in the network advances the random number generator, so if
             the network creation code changes, the entire model changes.
-        :param add_to_container: bool, optional
-        :type add_to_container: Determines if this Network will be added
-            to the current container. Defaults to true iff
-            currently with a Network.
+        :type seed: int
+        :param add_to_container: Determines if this Network will be added to
+            the current container. Defaults to true iff currently with a Network
+        :type add_to_container: bool
         """
         super(VectorDifference, self).__init__(label, seed,
                                                add_to_container)

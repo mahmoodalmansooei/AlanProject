@@ -2,7 +2,7 @@ import nengo
 
 
 class Differentiator(nengo.Network):
-    def __init__(self, n_neurons,
+    def __init__(self, n_neurons=100,
                  radius=1.0, tau=0.1,
                  label=None, seed=None,
                  add_to_container=None):
@@ -21,18 +21,17 @@ class Differentiator(nengo.Network):
         :type radius: float
         :param tau: post synaptic time constant
         :type tau: float
-        :param label:  str, optional
-        :type label: Name of the model. Defaults to None.
-        :param seed: int, optional
-        :type seed: Random number seed that will be fed to the random
+        :param label: Name of the model. Defaults to None.
+        :type label: str
+        :param seed: Random number seed that will be fed to the random
             number generator. Setting this seed makes the creation of the
             model a deterministic process; however, each new ensemble
             in the network advances the random number generator, so if
             the network creation code changes, the entire model changes.
-        :param add_to_container: bool, optional
-        :type add_to_container: Determines if this Network will be added
-            to the current container. Defaults to true iff
-            currently with a Network.
+        :type seed: int
+        :param add_to_container: Determines if this Network will be added to
+            the current container. Defaults to true iff currently with a Network
+        :type add_to_container: bool
         """
         super(Differentiator, self).__init__(label, seed,
                                              add_to_container)
