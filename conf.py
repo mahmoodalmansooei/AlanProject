@@ -30,10 +30,12 @@ def setup(app):
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('robot_control'))
-sys.path.insert(1, os.path.abspath('robot_interface'))
-sys.path.insert(2, os.path.abspath('robot_modules'))
-sys.path.insert(3, os.path.abspath('robot_utils'))
+
+sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(1, os.path.abspath('robot_control'))
+sys.path.insert(2, os.path.abspath('robot_interface'))
+sys.path.insert(3, os.path.abspath('robot_modules'))
+sys.path.insert(4, os.path.abspath('robot_utils'))
 
 # -- General configuration ------------------------------------------------
 
@@ -50,6 +52,8 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.intersphinx',
 ]
+
+intersphinx_mapping = {'python': ('https://docs.python.org/2', None)}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
