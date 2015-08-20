@@ -51,11 +51,13 @@ extensions = [
     'sphinx.ext.pngmath',
     'sphinx.ext.viewcode',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.autosummary'
 ]
 
 intersphinx_mapping = {'python': ('https://docs.python.org/2', None),
                        'nengo': ('https://pythonhosted.org/nengo/', None),
-                       'nengo_spinnaker':('http://nengo-spinnaker.readthedocs.org/en/latest/', None)}
+                       'nengo_spinnaker':('http://nengo-spinnaker.readthedocs.org/en/latest/', None),
+                       'numpy':('http://docs.scipy.org/doc/numpy/', None)}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
