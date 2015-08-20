@@ -328,6 +328,7 @@ class Robot(nengo.Network):
     def enable(self, is_enabled):
         """
         Enable or disable all the motors in the robot.
+
         :param is_enabled: Parameter which selects whether to enable or disable
             the motors.
         :type is_enabled: bool
