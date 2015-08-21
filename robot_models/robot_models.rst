@@ -9,6 +9,7 @@ Control signal
     :members:
     :undoc-members:
     :show-inheritance:
+    :noindex:
 
 Motor
 -----
@@ -18,6 +19,7 @@ Motor
     :members:
     :undoc-members:
     :show-inheritance:
+    :noindex:
 
 Sensor
 ------
@@ -26,3 +28,4 @@ Sensor
     :members:
     :undoc-members:
     :show-inheritance:
+    :noindex:

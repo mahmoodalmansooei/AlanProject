@@ -11,7 +11,6 @@ Alan robot
     :members:
     :undoc-members:
     :show-inheritance:
-    :noindex:
 
 Container
 *********
@@ -20,7 +19,6 @@ Container
     :members:
     :undoc-members:
     :show-inheritance:
-    :noindex:
 
 Threaded container
 ******************
@@ -29,7 +27,6 @@ Threaded container
     :members:
     :undoc-members:
     :show-inheritance:
-    :noindex:
 
 
 Simulation control
@@ -39,7 +36,6 @@ Simulation control
     :members:
     :undoc-members:
     :show-inheritance:
-    :noindex:
 
 
 
@@ -54,7 +50,7 @@ Control signal
     :members:
     :undoc-members:
     :show-inheritance:
-    :noindex:
+    
 
 Motor
 *****
@@ -64,7 +60,7 @@ Motor
     :members:
     :undoc-members:
     :show-inheritance:
-    :noindex:
+    
 
 Sensor
 ******
@@ -73,7 +69,7 @@ Sensor
     :members:
     :undoc-members:
     :show-inheritance:
-    :noindex:
+    
 
 
 
@@ -91,7 +87,7 @@ Action
     :members:
     :undoc-members:
     :show-inheritance:
-    :noindex:
+    
 
 
 Arm
@@ -102,7 +98,7 @@ Arm
     :members:
     :undoc-members:
     :show-inheritance:
-    :noindex:
+    
 
 Arm type
 ^^^^^^^^
@@ -127,7 +123,7 @@ Head
     :members:
     :undoc-members:
     :show-inheritance:
-    :noindex:
+    
 
 Robot
 *****
@@ -136,7 +132,7 @@ Robot
     :members:
     :undoc-members:
     :show-inheritance:
-    :noindex:
+    
 
 Neural simulation utilities
 ---------------------------
@@ -149,7 +145,7 @@ Cross products
     :members:
     :undoc-members:
     :show-inheritance:
-    :noindex:
+    
 
 Differentiator
 **************
@@ -158,7 +154,7 @@ Differentiator
     :members:
     :undoc-members:
     :show-inheritance:
-    :noindex:
+    
 
 Matrix multiplication
 *********************
@@ -167,7 +163,7 @@ Matrix multiplication
     :members:
     :undoc-members:
     :show-inheritance:
-    :noindex:
+    
 
 Vector difference
 *****************
@@ -176,5 +172,5 @@ Vector difference
     :members:
     :undoc-members:
     :show-inheritance:
-    :noindex:
+    
 

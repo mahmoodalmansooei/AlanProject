@@ -10,6 +10,7 @@ Alan robot
     :members:
     :undoc-members:
     :show-inheritance:
+    :noindex:
 
 Container
 ---------
@@ -18,6 +19,7 @@ Container
     :members:
     :undoc-members:
     :show-inheritance:
+    :noindex:
 
 Threaded container
 ------------------
@@ -26,6 +28,7 @@ Threaded container
     :members:
     :undoc-members:
     :show-inheritance:
+    :noindex:
 
 
 Simulation control
@@ -35,4 +38,5 @@ Simulation control
     :members:
     :undoc-members:
     :show-inheritance:
+    :noindex:
 

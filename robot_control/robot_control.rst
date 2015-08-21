@@ -8,6 +8,7 @@ Action
     :members:
     :undoc-members:
     :show-inheritance:
+    :noindex:
 
 Arm
 ---
@@ -16,6 +17,7 @@ Arm
     :members:
     :undoc-members:
     :show-inheritance:
+    :noindex:
 
 Head
 ----
@@ -24,6 +26,7 @@ Head
     :members:
     :undoc-members:
     :show-inheritance:
+    :noindex:
 
 Robot
 -----
@@ -32,3 +35,4 @@ Robot
     :members:
     :undoc-members:
     :show-inheritance:
+    :noindex:
