@@ -92,7 +92,7 @@ Nengo simulation
 The starting point for the control system is the Robot class, which is a stand-alone, complete and
 modular ``nengo.Network``.
 
-.. code-block:: python
+.. sourcecode:: python
     :linenos:
 
     import nengo
@@ -106,7 +106,7 @@ modular ``nengo.Network``.
 At this point, the simulation has not started yet, only the object has been built. In order to start
 the simulation we need to either run the above in ``nengo_gui`` or create a simulator.
 
-.. code-block:: python
+.. sourcecode:: python
     :linenos:
 
     sim = nengo.Simulator(model)
@@ -156,7 +156,7 @@ simulation on a SpiNNaker board,
     only one SpiNNaker board, instead needing
     a 3 board toroid.
 
-.. code-block:: python
+.. sourcecode:: python
     :linenos:
 
     # Import the package
@@ -179,7 +179,7 @@ objects. The have the ability to update the value of an input
 (i.e. :class:`.Sensor`, :class:`.ControlSignal`) and act upon the
 value of an output (i.e. :class:`.Motor` using callbacks.
 
-.. code-block:: python
+.. sourcecode:: python
     :linenos:
     :emphasize-lines: 10
 
@@ -202,4 +202,65 @@ The highlighted line shows the setting of the default callback, and as a result
 every time the value of any of the motors is updated the callback is triggered.
 In the given example, the value output by the neural simulation for a specific
 motor is printed to standard output.
+
+Apendix: Mathematical descriptions of position and orientation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The center of the head will be defined as the origin of the world system
+(right-handed coordinate system). As a result, the main target of the
+arm (the robot's "lips") can be found at a constant offset from center
+on the Y axis.
+
+Position of the shoulder in the world coordinates (using homogeneous
+matrices):
+
+.. math::
+
+   \,^WS =\begin{bmatrix}
+       l\\
+       0 \\
+       -h \\
+       0
+   \end{bmatrix}
+
+, with :math:`l =` shoulder width and :math:`h =` offset between the
+center of the head and the base of the neck.
+
+In addition, we need to define the orientation of the upper arm
+(:math:`\{U\}`) in relation to the origin of the world system
+(:math:`\{W\}`) by means of a rotation matrix. In this case, two
+rotations are needed: one around the :math:`^W \hat X` axis, and the
+other one around the :math:`^W \hat Y` axis. The first rotation is done
+by a constant amount (:math:`\gamma`), while the other one is the degree
+of freedom of the shoulder and can move freely to achieve the end goal
+(:math:`\alpha`).
+
+.. math::  \,^W_UR(\alpha) = \,R_Y(\gamma) \cdot \,R_X(\alpha) 
+
+From this it follows that the elbow location could be easily expressed
+in relation to the shoulder frame: it is located at a constant, given
+offset from the shoulder on its :math:`^U \hat Y` axis. The orientation
+of the lower arm (:math:`\{L\}`) frame can be describe by the rotation
+matrix around the :math:`^U \hat X` axis.
+
+.. math::  \,^U_L R(\beta) = \,R_X(\beta) 
+
+Finally, the hand's position (:math:`H`) is computed easily with respect
+to :math:`\{L\}` as it can be found at a constant, given offset on its
+:math:`^L \hat Y` axis. By using the previously created reference chain,
+we can compute the position of the hand in world coordinates as follows:
+
+.. raw:: latex
+
+   \begin{gather*}
+       \,^WH =  \,^W_U R \,^U H + \,^W S \\ 
+       where \\
+       \,^U H = \,^U_L R \,^L H + \,^U E
+   \end{gather*}
+
+I believe there is no need to represent the orientation of the hand
+because it is not taken into account when planning movement as the only
+degree of freedom present there is in the finger.
+
+`Reference book: "Introduction to robotics : mechanics and control" John J. Craig. 1989`
 
