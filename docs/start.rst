@@ -31,9 +31,14 @@ will install all required dependencies automatically.
 
 .. warning::
 
-    The current ``pip`` installation of ``nengo`` and ``nengo_spinnaker`` are broken. It might be sensible to install them manually from their respective repositories_.
+    As of |today|, the current  ``pip`` installation of
+    `nengo <https://github.com/nengo/nengo>`_ and `nengo_spinnaker <https://github.com/project-rig/nengo_spinnaker>`_ are broken.
+    The :download:`setup.py <../setup.py>` file has been
+    specifically built to make use of known stable versions of both
+    downloaded from their respective github repositories.
 
-.. _repositories: https://github.com/nengo/nengo
+
+    If newer versions are desired, install them manually. **Install at your own risk!**
 
 
 .. code:: bash
