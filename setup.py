@@ -4,11 +4,10 @@ setup(
     name='alan_robot',
     version='1.0.0',
     packages=find_packages(),
-    # package_dir={'robot_control': ''},
-    url='http://pabogdan.github.io/AlanProject',
+    url='http://alanproject.readthedocs.org/',
     license='',
     author='Petrut Antoniu Bogdan',
-    author_email='petrut.bogdan@student.manchester.ac.uk',
+    author_email='pab@cs.man.ac.uk',
     description='Spiking neural network robot control system running on SpiNNaker',
     # Requirements
     dependency_links = ['https://github.com/nengo/nengo/tarball/23107fe#egg=nengo-2.1.0.dev0',
