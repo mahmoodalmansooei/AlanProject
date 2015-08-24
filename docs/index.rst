@@ -17,7 +17,7 @@ The robot control system presented herein relies on a
 torus of `SpiNNaker <http://apt.cs.manchester.ac.uk/projects/SpiNNaker/>`__
 boards and communicates with a robot or robot simulation using a specially made interface
 that is completely agnostic of the underlying neural implementation. In effect, the interface allows the user
-to treat the neural simulation as a black box if desired.
+to treat the neural simulation as a black box,-000- if desired.
 
 .. image:: http://apt.cs.manchester.ac.uk/Images/Rotating_Doughnut_S2.gif
    :alt: SpiNNaker toroidal structure visualisation
@@ -40,12 +40,17 @@ categories: functional and non-functional requirements. The former are:
 -  Keep track of a moving target (lips during head rotation)
 
 The non-functional requirements, dealing with how the system should
-work, invole:
+work, involve:
 
 -  Simultaneous and smooth join movement
 
 -  Realistic movement
 
+
+.. important::
+   Please report any errors or inconsistencies to our  `Github repository <https://github.com/pabogdan/AlanProject/issues>`_ .
+
+   For assistance or questions, you can reach us at pab@cs.man.ac.uk.
 
 .. toctree::
    :maxdepth: 2

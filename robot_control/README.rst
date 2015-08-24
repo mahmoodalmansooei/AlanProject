@@ -7,19 +7,58 @@ The control system for the robot consists of several independent modules, with s
 
 *   head controller
 
-*   arm controller (one for each arm)
+*   arm controllers (one for each arm)
 
 *   action selection (could be considered a meta-controller)
 
 Head
 ----
 
+The head is designed to have 3 degrees of freedom: the neck with 1 DOF, and the
+eyes with 2 DOF. As a result, the control system takes in a tuple of values
+representing the position the head needs to face towards as radians.
+
+The control system has the following behaviour: be default the head is at
+position (0,0), which means the head is orientated to look straight ahead, with
+the eyes in the middle of their sockets. When it is issued a new position, the
+neck and eyes start rotating at the same time, the eyes snap onto the target
+and the neck continues rotating until the whole head is facing the target.
+
+Example available :ref:`here <head_movement_demo>`.
+
+API documentation: :class:`~robot_control.robot.Robot`.
+
 Arm
 ---
 
-Action selection
-----------------
 
+Each arm consists of
+
+API documentation: :class:`~robot_control.arm.Arm`.
+
+Action selection and execution
+------------------------------
+
+Action selection is achieved with the use of a basal ganglia
+(`Stewart, Bekolay, & Eliasmith, 2012 <http://journal.frontiersin.org/article/10.3389/fnins.2012.00002/full>`_)
+and thalamus Nengo implementation.
+The basal ganglia's action selection relies on inhibitory connections
+into the thalamus, thus the selected action is the one which isn't
+inhibited.
+
+The current implementation allows to select any combination of 3 actions
+(move head, move left hand, move right hand), though selecting all 3 actions
+turns out to be quite noisy (might want to avoid). Modifying the standard
+implementation to allow this type of selection means that not selecting any actions
+is equivalent to selecting all of them at once.
+
+
+
+
+
+Example available :ref:`here <action_selection_demo>`.
+
+API documentation: :class:`~robot_control.action.ActionSelectionExecution`.
 
 Using the classes
 -----------------

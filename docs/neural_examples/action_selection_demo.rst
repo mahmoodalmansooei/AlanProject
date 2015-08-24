@@ -1,5 +1,9 @@
+.. _action_selection_demo:
+
 Action selection
 ================
+
+
 
 The basal ganglia's action selection relies on inhibitory connections
 into the thalamus, thus the selected action is the one which isn't

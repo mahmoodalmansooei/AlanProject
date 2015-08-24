@@ -1,5 +1,8 @@
+.. _head_movement_demo:
+
 Head movement demo
 ==================
+
 
 
 Running the simulation on the host
