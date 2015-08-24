@@ -31,8 +31,21 @@ API documentation: :class:`~robot_control.robot.Robot`.
 Arm
 ---
 
+Each arm consists of 3 DOF: shoulder (1 DOF), elbow (1DOF), and finger (1DOF).
+This is obviously not enough mobility to be able to reach all arbitrary 3D
+positions, as a result a naive approximation is used. The shoulder's job is to
+tilt the plane described by the shoulder, elbow and finger so that the target
+position lies on this plane. Then the elbow rotates to try and point the lower
+arm in the direction of the target.
 
-Each arm consists of
+.. warning::
+
+   The current implementation uses a neural approximation of the
+   :func:`numpy.arctan2` method. This is a highly discontinuous function which
+   has difficulties in being represented in neurons. As a result, some positions
+   will make the function oscillate between two opposite functions quickly.
+
+   This behaviour will be amended in future.
 
 API documentation: :class:`~robot_control.arm.Arm`.
 
@@ -51,9 +64,6 @@ The current implementation allows to select any combination of 3 actions
 turns out to be quite noisy (might want to avoid). Modifying the standard
 implementation to allow this type of selection means that not selecting any actions
 is equivalent to selecting all of them at once.
-
-
-
 
 
 Example available :ref:`here <action_selection_demo>`.
