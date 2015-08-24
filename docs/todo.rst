@@ -15,11 +15,11 @@ reusable and efficient, a possible basis for future development and improvement.
 Refactoring work
 ^^^^^^^^^^^^^^^^
 
--   Refactor :py:class:`Robot` so that it takes as arguments a left hand,
+-   Refactor :py:class:`robot_control.robot.Robot` so that it takes as arguments a left hand,
     a right hand, a head and an action selection module, so that
     they can be independently modified by radii and lengths.
 
--   Refactor :py:class:`Arm` to occupy fewer SpiNNaker cores, eventually
+-   Refactor :py:class:`robot_control.arm.Arm` to occupy fewer SpiNNaker cores, eventually
     fitting the whole system on one 48-node SpiNNaker board without compromising
     accuracy
 
