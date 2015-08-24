@@ -56,10 +56,10 @@ work, involve:
    :maxdepth: 2
 
 
-   Getting started <start>
+   Getting started <docs/start>
 
-   todo
+   docs/todo
 
-   Examples <examples>
+   Examples <docs/examples>
 
-   User guide <user_guide>
+   User guide <docs/user_guide>

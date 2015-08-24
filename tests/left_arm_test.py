@@ -4,7 +4,7 @@ import nengo
 import numpy as np
 import robot_control.arm
 from nengo.utils.functions import piecewise
-from robot_control.arm import  HandType
+from robot_control.arm import  ArmType
 
 robot_control.arm = reload(robot_control.arm)
 
@@ -34,7 +34,7 @@ with model:
     finger_enable = nengo.Node(output=0)
     arm = robot_control.arm.Arm(shoulder_position, elbow_position,
                                 hand_position, gamma,
-                                arm_type=HandType.LEFT,
+                                arm_type=ArmType.LEFT,
                                 seed=len("SpiNNaker"))
     nengo.Connection(target, arm.target_position.input)
     nengo.Connection(enabled, arm.enable)
