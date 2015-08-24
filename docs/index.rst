@@ -51,8 +51,8 @@ work, invole:
    :maxdepth: 2
 
 
-   Getting started <docs/start>
+   Getting started <start>
 
-   Examples <docs/examples>
+   Examples <examples>
 
-   User guide <docs/user_guide>
+   User guide <user_guide>
