@@ -1,6 +1,8 @@
 Examples
 ========
 
+..  _examples:
+
 The following examples will be split into two sections based on different levels
 of abstraction.
 

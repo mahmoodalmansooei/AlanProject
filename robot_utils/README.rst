@@ -1,6 +1,8 @@
 Utilities
 =========
 
+..  _robot_utils_readme:
+
 Package contains scripts for various utilities required when building a robot control system.
 These classes inherit from nengo.Network.
 

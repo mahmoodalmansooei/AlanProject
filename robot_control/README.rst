@@ -1,6 +1,7 @@
 Robot control
 =============
 
+..  _robot_control_readme:
 
 The control system for the robot consists of several independent modules, with some level of interconnection:
 
