@@ -27,17 +27,12 @@ to treat the neural simulation as a black box, if desired.
 The simulations have some well defined goals which can be easily split up into two
 categories: functional and non-functional requirements. The former are:
 
--  Action selection using a biologically plausible implementation of a
-   basal ganglia
-
 -  Hand movement in front of lips to realise a silencing gesture
 
--  Robot faces the position it is asked to face (other robot or
+-  Robot faces the position it is asked to face (e.g. other robot or
    interrupting person)
 
 -  Gesture while talking (small head and hand movement)
-
--  Keep track of a moving target (lips during head rotation)
 
 The non-functional requirements, dealing with how the system should
 work, involve:
@@ -57,6 +52,8 @@ work, involve:
 
 
    Getting started <docs/start>
+
+   docs/briefs
 
    docs/todo
 

@@ -1,18 +1,15 @@
+..  _robot_control_readme:
+
 Robot control
 =============
 
-..  _robot_control_readme:
 
-The control system for the robot consists of several independent modules, with some level of interconnection:
+.. toctree::
 
-*   head controller
+    Classes in the control package <robot_control>
 
-*   arm controllers (one for each arm)
-
-*   action selection (could be considered a meta-controller)
-
-Head
-----
+Head description
+----------------
 
 The head is designed to have 3 degrees of freedom: the neck with 1 DOF, and the
 eyes with 2 DOF. As a result, the control system takes in a tuple of values
@@ -28,8 +25,8 @@ Example available :ref:`here <head_movement_demo>`.
 
 API documentation: :class:`~robot_control.robot.Robot`.
 
-Arm
----
+Arm description
+---------------
 
 Each arm consists of 3 DOF: shoulder (1 DOF), elbow (1DOF), and finger (1DOF).
 This is obviously not enough mobility to be able to reach all arbitrary 3D
@@ -49,15 +46,20 @@ arm in the direction of the target.
 
 API documentation: :class:`~robot_control.arm.Arm`.
 
-Action selection and execution
-------------------------------
+Action selection and execution description
+------------------------------------------
 
-Action selection is achieved with the use of a basal ganglia
+Action selection and execution is achieved with the use of a basal ganglia
 (`Stewart, Bekolay, & Eliasmith, 2012 <http://journal.frontiersin.org/article/10.3389/fnins.2012.00002/full>`_)
 and thalamus Nengo implementation.
-The basal ganglia's action selection relies on inhibitory connections
-into the thalamus, thus the selected action is the one which isn't
-inhibited.
+The basal ganglia's action selection relies on inhibitory connections,
+thus the selected action is the one which isn't inhibited.
+The output from the basal ganglia is fed into
+the thalamus, which activates only the action (or actions) which is selected.
+
+The basal ganglia's action selection relies on inhibitory connections,
+thus the selected action is the one which isn't inhibited. The output from the basal ganglia is fed into
+the thalamus, which activates only the action (or actions) which is selected.
 
 The current implementation allows to select any combination of 3 actions
 (move head, move left hand, move right hand), though selecting all 3 actions
@@ -74,8 +76,11 @@ Using the classes
 -----------------
 
 The entire control system for the robot is contained within the robot.py module. 
-In order to obtain useful behaviour from this class some inputs and outputs need to be connected to the system, as
-can be seen in the following diagram.
+In order to obtain useful behaviour from this class some inputs
+and outputs have been integrated into the network and need to be set or acted upon
+using the provided API.
+
+The structure of the robot control system is show in figure below.
 
 .. image:: http://i.imgur.com/QU2lF4T.png
    :alt: Robot module hierarchy

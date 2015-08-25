@@ -133,26 +133,18 @@ being that the ``Simulator`` object that needs creating lives inside ``nengo_spi
 
 .. note::
 
-    A more detailed description of the neuromorphic control system is available at the following pages:
+    A more detailed description of the neuromorphic control system is available
+    at the robot control description :ref:`page <robot_control_readme>`.
 
-    .. toctree::
-        :maxdepth: 2
-
-        Robot control<../robot_control/README>
-
-    The following are utilities for creating control systems in a spiking neural network setting. Not all of them
+    Moreover, :ref:`these <robot_utils_readme>` utilities are useful for creating control systems in a
+    spiking neural network setting. Not all of them
     might have been used in the current implementation.
-
-    .. toctree::
-        :maxdepth: 2
-
-        SNN utilities <../robot_utils/robot_utils>
 
 
 Simulation interface
 ^^^^^^^^^^^^^^^^^^^^
 
-The purpose of this interface is to allow people with no experience working
+The purpose of this interface is to allow users with no experience working
 with neural simulations using ``Nengo`` to
 abstract that part software and just use a few API calls to achieve their goals.
 It follows an event based model, meaning that code is executed only when a

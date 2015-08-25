@@ -1,16 +1,19 @@
+..  _robot_utils_readme:
+
 Utilities
 =========
 
-..  _robot_utils_readme:
 
-Package contains scripts for various utilities required when building a robot control system.
-These classes inherit from nengo.Network.
+
+This package includes several classes that provide some well defined
+functionality in a neural simulation. These modules include:
+
+
+
+These utilities exist to offer a neuromorphic engineer who wants to extend
+the current neural control system or create a custom control system a
+suite of well documented, common building blocks to facilitate their effort.
 
 .. toctree::
 
     Classes in the utilities package <robot_utils>
-
-All of these utilities suffer from being very sensitive to radius values. 
-
-These modules can be used as stand-alone modules or as part of larger networks.
-

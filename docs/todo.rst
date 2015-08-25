@@ -28,11 +28,12 @@ Expansions
 
 -   Interface the neural robot controller with ROS_
 
--   Explore alternative ways to compute trajectory based on arbitrary targets
-    in 3D space
+-   Explore alternative ways to compute trajectory in order to reach arbitrary
+    targets in 3D space
 
 -   The neural control system could learn from how much it undershoots or
-    overshoots and adapt on the fly based on feedback from sensors.
+    overshoots and adapt on the fly based on feedback from sensors
+    (reinforcement learning).
 
 -   Provide visual information to robot using a silicon sensor retina
 
