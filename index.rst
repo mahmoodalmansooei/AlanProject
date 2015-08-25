@@ -17,7 +17,7 @@ The robot control system presented herein relies on a
 torus of `SpiNNaker <http://apt.cs.manchester.ac.uk/projects/SpiNNaker/>`__
 boards and communicates with a robot or robot simulation using a specially made interface
 that is completely agnostic of the underlying neural implementation. In effect, the interface allows the user
-to treat the neural simulation as a black box,-000- if desired.
+to treat the neural simulation as a black box, if desired.
 
 .. image:: http://apt.cs.manchester.ac.uk/Images/Rotating_Doughnut_S2.gif
    :alt: SpiNNaker toroidal structure visualisation

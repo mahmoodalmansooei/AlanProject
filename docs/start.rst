@@ -86,6 +86,17 @@ visit their documentation_ webpages.
 
 .. _documentation: https://pythonhosted.org/nengo/
 
+.. figure:: resources/softstack.png
+   :alt: Software stack
+   :align: center
+
+   The current structure of the software.
+
+The user application uses the provided API to control the simulation and
+its parameters. The Nengo simulation running on host communicates to the
+SpiNNaker board over Ethernet using a specially created library
+(nengo_spinnaker and rig).
+
 Nengo simulation
 ^^^^^^^^^^^^^^^^
 
@@ -144,6 +155,8 @@ Simulation interface
 The purpose of this interface is to allow people with no experience working
 with neural simulations using ``Nengo`` to
 abstract that part software and just use a few API calls to achieve their goals.
+It follows an event based model, meaning that code is executed only when a
+certain event happens.
 
 For example, the following snippet of code is sufficient to place a neural
 simulation on a SpiNNaker board,
@@ -198,8 +211,8 @@ value of an output (i.e. :class:`.Motor` using callbacks.
     robot.start_simulation()
     robot.enable_robot()
 
-The highlighted line shows the setting of the default callback, and as a result
-every time the value of any of the motors is updated the callback is triggered.
+The highlighted line shows the setting of the shows the setting of a default
+action to be executed  time the value of any of the motors is updated.
 In the given example, the value output by the neural simulation for a specific
 motor is printed to standard output.
 
