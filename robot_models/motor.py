@@ -4,7 +4,7 @@ import nengo
 
 
 class Motor(nengo.Node):
-    def __init__(self, container, sampling_period=100, dt=0.001, label=None):
+    def __init__(self, container, label=None):
         """
         A motor is a type of node that sends live information back for
         processing.
@@ -20,8 +20,6 @@ class Motor(nengo.Node):
         :return: A motor node
         :rtype: Motor
         """
-        self.sampling_period = sampling_period * dt  # seconds
-        self.previous_time = - self.sampling_period
         self.container = container
         super(Motor, self).__init__(output=self.motor_output, size_in=1,
                                     label=label)
@@ -38,6 +36,4 @@ class Motor(nengo.Node):
         :param value: The current value of the motor node
         :type value: floats
         """
-        if time - self.previous_time >= self.sampling_period:
-            self.previous_time = time
-            self.container.update(self, value)
+        self.container.update(self, value)
