@@ -7,7 +7,7 @@ feature eight international contemporary artists exploring the theme of machines
 The exhibition will be part of the cultural programme for Manchester\'s role as **European City of Science** in
 2016.
 
-Artist Tove Kjellmark (Sweden) is making a new artwork for The Imitation Game exhibition, opening March
+Swedish artist Tove Kjellmark is making a new artwork for The Imitation Game exhibition, opening March
 2016, in the form of two **human-like robots** which will sit in leather armchairs in the gallery and converse
 with each other on topics yet to be decided. They will **detect and acknowledge the presence of human
 visitors** to the gallery through **movement and speech**.
@@ -37,7 +37,7 @@ categories: functional and non-functional requirements. The former are:
 The non-functional requirements, dealing with how the system should
 work, involve:
 
--  Simultaneous and smooth join movement
+-  Simultaneous and smooth joint movement
 
 -  Realistic movement
 
