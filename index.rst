@@ -13,7 +13,7 @@ with each other on topics yet to be decided. They will **detect and acknowledge 
 visitors** to the gallery through **movement and speech**.
 
 The robot control system presented herein relies on a
-`Nengo <https://github.com/nengo>`__ spiking neural network simulation running on a
+`Nengo <http://www.nengo.ca/>`__ spiking neural network simulation running on a
 torus of `SpiNNaker <http://apt.cs.manchester.ac.uk/projects/SpiNNaker/>`__
 boards and communicates with a robot or robot simulation using a specially made interface
 that is completely agnostic of the underlying neural implementation. In effect, the interface allows the user
