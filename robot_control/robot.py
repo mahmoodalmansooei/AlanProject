@@ -3,7 +3,6 @@ __author__ = 'Petrut Bogdan'
 import nengo
 import numpy as np
 from arm import Arm, ArmType
-from head import Head
 from action import ActionSelectionExecution
 from robot_interface.container import Container
 from robot_models.motor import Motor
@@ -16,15 +15,13 @@ class Robot(nengo.Network):
                  idle_left_hand_position=np.asarray([[.3, .5, -.7]]),
                  idle_right_hand_position=np.asarray([[.3, .5, -.7]]),
                  gamma=0, shoulder_width=.3, neck_length=.2,
-                 upper_arm_length=.5, lower_arm_length=.5, lip_distance=.2,
+                 upper_arm_length=.5, lower_arm_length=.5,
                  tau=0.2,
                  shoulder_sensitivity=2., elbow_sensitivity=2.,
-                 finger_sensitivity=1.0, sampling_period=100, dt=0.001,
-                 initial_actions=np.array([1, 0, 0]),
-                 initial_lip_enable=np.array([0, 0]),
+                 finger_sensitivity=1.0,
+                 initial_actions=np.array([1, 0]),
                  initial_left_finger_enable=np.array([1]),
                  initial_right_finger_enable=np.array([1]),
-                 initial_head_position=np.array([0, 0]),
                  external_feedback=False, label=None, seed=None,
                  add_to_container=None):
         """
@@ -56,9 +53,6 @@ class Robot(nengo.Network):
         :type upper_arm_length: float
         :param lower_arm_length: The distance from the elbow to the finger.
         :type lower_arm_length: float
-        :param lip_distance: The distance from the center of the head to
-            the lips.
-        :type lip_distance: float
         :param tau: post synaptic time constant
         :type tau: float
         :param shoulder_sensitivity: how much to scale the motor output by
@@ -67,21 +61,12 @@ class Robot(nengo.Network):
         :type elbow_sensitivity: float
         :param finger_sensitivity: how much to scale the motor output by
         :type finger_sensitivity: float
-        :param sampling_period: The period which dictates how often the
-            motors react to changes.
-        :type sampling_period: float
-        :param dt: timestep
-        :type dt: float
         :param initial_actions:
         :type initial_actions: numpy.ndarray
-        :param initial_lip_enable:
-        :type initial_lip_enable: numpy.ndarray
         :param initial_left_finger_enable:
         :type initial_left_finger_enable: numpy.ndarray
         :param initial_right_finger_enable:
         :type initial_right_finger_enable: numpy.ndarray
-        :param initial_head_position:
-        :type initial_head_position: numpy.ndarray
         :param external_feedback: Selects if the system should allow for
             external feedback from sensors.
         :type external_feedback: bool
@@ -111,7 +96,6 @@ class Robot(nengo.Network):
         self.elbow_position = np.asarray([upper_arm_length, 0, 0])
         self.gamma = gamma
         self.hand_position = np.asarray([0, lower_arm_length, 0])
-        self.lip_position = np.asarray([0, lip_distance, 0])
         # endregion
         # Create a container in which to organise all the motors, sensors
         # and control signals
@@ -121,7 +105,7 @@ class Robot(nengo.Network):
         self.killswitch_container = Container()
         with self:
             # region Control signals for the simulation
-            self.actions = ControlSignal(self.control_container, size_out=3,
+            self.actions = ControlSignal(self.control_container, size_out=2,
                                          label="Actions control signal")
             self.lip_enable = ControlSignal(self.control_container, size_out=2,
                                             label="Lip enable control signal")
@@ -137,16 +121,12 @@ class Robot(nengo.Network):
             self.left_finger_enable = ControlSignal(
                 self.control_container, size_out=1,
                 label="Left finger enable control signal")
-            self.head_position = ControlSignal(
-                self.control_container, size_out=2,
-                label="Head position control signal")
             # endregion
             self.killswitch = ControlSignal(self.killswitch_container,
                                             size_out=1,
                                             label="Killswitch")
         # region Node outputs set to their initial values
         self.control_container.add(self.actions, initial_actions.ravel())
-        self.control_container.add(self.lip_enable, initial_lip_enable.ravel())
         self.control_container.add(self.right_hand_position,
                                    idle_right_hand_position.ravel())
         self.control_container.add(self.left_hand_position,
@@ -155,18 +135,10 @@ class Robot(nengo.Network):
                                    initial_right_finger_enable.ravel())
         self.control_container.add(self.left_finger_enable,
                                    initial_left_finger_enable.ravel())
-        self.control_container.add(self.head_position,
-                                   initial_head_position.ravel())
         self.killswitch_container.add(self.killswitch, 1)
         # endregion
         with self:
             # region Sensors
-            self.head_sensor = Sensor(self.sensor_container,
-                                      label="Head sensor")
-            self.eye_x_sensor = Sensor(self.sensor_container,
-                                       label="Eye x sensor")
-            self.eye_y_sensor = Sensor(self.sensor_container,
-                                       label="Eye y sensor")
             self.right_shoulder_sensor = Sensor(self.sensor_container,
                                                 label="Right shoulder sensor")
             self.right_elbow_sensor = Sensor(self.sensor_container,
@@ -181,32 +153,17 @@ class Robot(nengo.Network):
                                              label="Left finger sensor")
             # endregion
             # region Motors
-            self.head_motor = Motor(self.motor_container,
-                                    sampling_period, dt,
-                                    label="Head motor")
-            self.eye_x_motor = Motor(self.motor_container,
-                                     sampling_period, dt,
-                                     label="Eye x motor")
-            self.eye_y_motor = Motor(self.motor_container,
-                                     sampling_period, dt,
-                                     label="Eye y motor")
             self.right_shoulder_motor = Motor(self.motor_container,
-                                              sampling_period, dt,
                                               label="Right shoulder motor")
             self.right_elbow_motor = Motor(self.motor_container,
-                                           sampling_period, dt,
                                            label="Right elbow motor")
             self.right_finger_motor = Motor(self.motor_container,
-                                            sampling_period, dt,
                                             label="Right finger motor")
             self.left_shoulder_motor = Motor(self.motor_container,
-                                             sampling_period, dt,
                                              label="Left shoulder motor")
             self.left_elbow_motor = Motor(self.motor_container,
-                                          sampling_period, dt,
                                           label="Left elbow motor")
             self.left_finger_motor = Motor(self.motor_container,
-                                           sampling_period, dt,
                                            label="Left finger motor")
             # endregion
             # region Links
@@ -224,20 +181,13 @@ class Robot(nengo.Network):
                                 external_feedback=external_feedback,
                                 seed=seed,
                                 label="Left arm controller")
-            self.head = Head(self.lip_position, seed=seed,
-                             external_feedback=external_feedback,
-                             label="Head controller")
             self.action = ActionSelectionExecution(
                 seed=seed, label="Action selection and execution")
             # endregion
-            # Lip position available in action selection and execution
-            nengo.Connection(self.head.lips_position, self.action.lip_position)
-
-            # Action enables arm and head
+            # Action enables arm
             nengo.Connection(self.action.right_arm_enable,
                              self.right_arm.enable)
             nengo.Connection(self.action.left_arm_enable, self.left_arm.enable)
-            nengo.Connection(self.action.head_enable, self.head.enable)
 
             nengo.Connection(self.killswitch, self.action.killswitch)
 
@@ -249,8 +199,6 @@ class Robot(nengo.Network):
                              transform=[[-1, 0, 0],
                                         [0, 1, 0],
                                         [0, 0, 1]])
-            nengo.Connection(self.action.head_position,
-                             self.head.target_position.input)
 
             # Arm finger enabling propagation
             nengo.Connection(self.action.right_finger_enable,
@@ -259,10 +207,6 @@ class Robot(nengo.Network):
                              self.left_arm.action_enable)
 
             # region Motor connection
-            nengo.Connection(self.head.head_motor, self.head_motor)
-            nengo.Connection(self.head.eye_motor[0], self.eye_x_motor)
-            nengo.Connection(self.head.eye_motor[1], self.eye_y_motor)
-
             nengo.Connection(self.right_arm.shoulder_motor,
                              self.right_shoulder_motor)
             nengo.Connection(self.right_arm.elbow_motor, self.right_elbow_motor)
@@ -277,37 +221,27 @@ class Robot(nengo.Network):
             # endregion
             # region Control signals
             self.everything_done = nengo.Ensemble(self.n_neurons, 1)
-            nengo.Connection(self.head.done, self.everything_done,
-                             transform=[[.4]],
-                             synapse=self.tau)
             nengo.Connection(self.right_arm.done, self.everything_done,
-                             transform=[[.4]],
+                             transform=[[.5]],
                              synapse=self.tau)
             nengo.Connection(self.left_arm.done, self.everything_done,
-                             transform=[[.4]],
+                             transform=[[.5]],
                              synapse=self.tau)
             self.done = nengo.Node(size_in=1)
             nengo.Connection(self.everything_done, self.done)
             # endregion
             # region Connect control signals
             nengo.Connection(self.actions, self.action.actions.input)
-            nengo.Connection(self.lip_enable, self.action.lip_enable)
             nengo.Connection(self.right_hand_position,
-                             self.action.right_hand_position)
+                             self.action.right_arm_target_position)
             nengo.Connection(self.left_hand_position,
-                             self.action.left_hand_position)
+                             self.action.left_arm_target_position)
             nengo.Connection(self.right_finger_enable,
                              self.action.right_finger_enable)
             nengo.Connection(self.left_finger_enable,
                              self.action.left_finger_enable)
-            nengo.Connection(self.head_position, self.action.head_position)
             # endregion
             # region Connect sensors
-            # Head
-            nengo.Connection(self.head_sensor, self.head.external_head_error)
-            nengo.Connection(self.eye_x_sensor, self.head.external_eye_x_error)
-            nengo.Connection(self.eye_y_sensor, self.head.external_eye_y_error)
-
             # Right arm
             nengo.Connection(self.right_shoulder_sensor,
                              self.right_arm.external_shoulder_error)
