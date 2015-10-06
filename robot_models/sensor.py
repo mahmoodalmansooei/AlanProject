@@ -31,5 +31,4 @@ class Sensor(nengo.Node):
         :return: Value of the sensor (as stored in container)
         :rtype: float
         """
-        # TODO Make transmit period be adjustable
         return self.container[self]

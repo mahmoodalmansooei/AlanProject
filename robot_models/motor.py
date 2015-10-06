@@ -11,10 +11,6 @@ class Motor(nengo.Node):
 
         :param container: The object that receives information from the motor
         :type container: Container
-        :param sampling_period: The period with which the motor sends information
-        :type sampling_period: float or int
-        :param dt: The time step in seconds
-        :type dt: float
         :param label: The name of the motor
         :type label: str
         :return: A motor node
