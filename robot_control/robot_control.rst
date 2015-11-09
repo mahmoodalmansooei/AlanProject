@@ -19,15 +19,6 @@ Arm
     :show-inheritance:
     :noindex:
 
-Head
-----
-
-.. autoclass:: robot_control.head.Head
-    :members:
-    :undoc-members:
-    :show-inheritance:
-    :noindex:
-
 Robot
 -----
 

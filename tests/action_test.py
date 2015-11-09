@@ -22,6 +22,6 @@ with model:
     nengo.Connection(actions, selection.actions.input)
     nengo.Connection(lip_enable, selection.lip_enable)
     nengo.Connection(lip_position, selection.lip_position)
-    nengo.Connection(left_hand_position, selection.left_hand_position)
-    nengo.Connection(right_hand_position, selection.right_hand_position)
+    nengo.Connection(left_hand_position, selection.left_arm_target_position)
+    nengo.Connection(right_hand_position, selection.right_arm_target_position)
     nengo.Connection(killswitch, selection.killswitch)

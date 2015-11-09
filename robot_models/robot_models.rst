@@ -20,12 +20,3 @@ Motor
     :undoc-members:
     :show-inheritance:
     :noindex:
-
-Sensor
-------
-
-.. autoclass:: robot_models.sensor.Sensor
-    :members:
-    :undoc-members:
-    :show-inheritance:
-    :noindex:
