@@ -9,3 +9,6 @@
 
 #Compiled files shouldn't be on git
 *.pyc
+
+#Ipython checkpoints
+.ipynb_checkpoints
