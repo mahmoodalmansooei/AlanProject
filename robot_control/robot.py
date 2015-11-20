@@ -35,9 +35,9 @@ class Robot(nengo.Network):
 
         with self:
             # Inputs
-            self.action = nengo.Node([0, 0])
-            self.direction = nengo.Node([1, 0])
-            self.sound = nengo.Node(0)
+            self.action = nengo.Node(size_in=2)
+            self.direction = nengo.Node(size_in=2)
+            self.sound = nengo.Node(size_in=1)
             # Hidden layer
             self.left_current_position = nengo.networks.EnsembleArray(n_neurons, 3)
             self.right_current_position = nengo.networks.EnsembleArray(n_neurons, 3)
@@ -77,6 +77,26 @@ class Robot(nengo.Network):
 
             nengo.Connection(self.left_current_position.output, self.left_servos, synapse=tau)
             nengo.Connection(self.right_current_position.output, self.right_servos, synapse=tau)
+
+            # Action selection
+            # The 2 actions are: silence and gesture
+            # Gesture inhibits a target function (goes idle)
+            # Silence inhibits sound and give a target position of its own
+            self.bg = nengo.networks.BasalGanglia(2)
+            nengo.Connection(self.action, self.bg.input)
+
+            # Sound connections
+            self.rhythm = nengo.Ensemble(n_neurons, 1)
+            nengo.Connection(self.sound, self.rhythm)
+
+            nengo.Connection(self.rhythm, self.left_error.input[[2]], transform=[[-1./5]])
+            nengo.Connection(self.rhythm, self.right_error.input[[2]], transform=[[1./5]])
+
+            # If silencing, inhibit rhythm
+            nengo.Connection(self.bg.output[0], self.rhythm.neurons, transform=[[1]]*self.rhythm.n_neurons)
+
+            # When silencing, provide a target function (in degrees) for each of the the joints
+
 
 
 if __name__ == "__main__":
