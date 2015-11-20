@@ -42,7 +42,7 @@ def start(t):
         return '0'
 
 def update_direction(_):
-    if np.random.normal(0, 1, 1) > 0:
+    if np.random.rand(1) > 0.5:
         return 'L'
     else:
         return 'R'
