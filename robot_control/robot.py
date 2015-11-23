@@ -96,6 +96,7 @@ class Robot(nengo.Network):
             nengo.Connection(self.bg.output[0], self.rhythm.neurons, transform=[[1]]*self.rhythm.n_neurons)
 
             # When silencing, provide a target function (in degrees) for each of the the joints
+            # Done. Provided from the "outside"
 
             # When gesturing, inhibit the target function (will return to idling position)
             inhibiting_left_target = self.left_target_position.add_neuron_input()
