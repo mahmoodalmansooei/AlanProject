@@ -4,7 +4,7 @@ import nengo
 
 
 class Servo(nengo.Node):
-    def __init__(self, container, label=None):
+    def __init__(self, container, size_in=None, label=None):
         """
         A motor is a type of node that sends live information back for
         processing.
@@ -21,7 +21,7 @@ class Servo(nengo.Node):
         :rtype: Servo
         """
         self.container = container
-        super(Servo, self).__init__(output=self.servo_output, size_in=1,
+        super(Servo, self).__init__(output=self.servo_output, size_in=1 if not size_in else size_in,
                                     label=label)
 
     def servo_output(self, time, value):
