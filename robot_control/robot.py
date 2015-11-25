@@ -3,6 +3,7 @@ __author__ = 'Petrut Bogdan'
 import nengo
 import numpy as np
 from robot_interface.container import Container
+from robot_models.servo import Servo
 
 LEFT = np.array([0.7, 0.7])
 RIGHT = np.array([0.7, -0.7])
@@ -32,6 +33,9 @@ class Robot(nengo.Network):
 
         def error(vector):
             return np.sign(vector[0] - vector[1]) * ((vector[0] - vector[1]) ** 2)
+
+
+        self.servos = Container()
 
         with self:
             # Inputs
@@ -72,8 +76,8 @@ class Robot(nengo.Network):
             nengo.Connection(left_error, self.left_motors, synapse=tau, transform=np.eye(3) * self.motor_gain)
             nengo.Connection(right_error, self.right_motors, synapse=tau, transform=np.eye(3) * self.motor_gain)
 
-            self.left_servos = nengo.Node(size_in=3)
-            self.right_servos = nengo.Node(size_in=3)
+            self.left_servos = Servo(container=self.servos, size_in=3)
+            self.right_servos = Servo(container=self.servos, size_in=3)
 
             nengo.Connection(self.left_current_position.output, self.left_servos, synapse=tau)
             nengo.Connection(self.right_current_position.output, self.right_servos, synapse=tau)
@@ -89,11 +93,11 @@ class Robot(nengo.Network):
             self.rhythm = nengo.Ensemble(n_neurons, 1)
             nengo.Connection(self.sound, self.rhythm)
 
-            nengo.Connection(self.rhythm, self.left_error.input[[2]], transform=[[-1./5]])
-            nengo.Connection(self.rhythm, self.right_error.input[[2]], transform=[[1./5]])
+            nengo.Connection(self.rhythm, self.left_error.input[[2]], transform=[[-1. / 5]])
+            nengo.Connection(self.rhythm, self.right_error.input[[2]], transform=[[1. / 5]])
 
             # If silencing, inhibit rhythm
-            nengo.Connection(self.bg.output[0], self.rhythm.neurons, transform=[[1]]*self.rhythm.n_neurons)
+            nengo.Connection(self.bg.output[0], self.rhythm.neurons, transform=[[1]] * self.rhythm.n_neurons)
 
             # When silencing, provide a target function (in degrees) for each of the the joints
             # Done. Provided from the "outside"
@@ -102,9 +106,10 @@ class Robot(nengo.Network):
             inhibiting_left_target = self.left_target_position.add_neuron_input()
             inhibiting_right_target = self.right_target_position.add_neuron_input()
 
-            nengo.Connection(self.bg.output[1], inhibiting_left_target, transform=[[1]]*300)
-            nengo.Connection(self.bg.output[1], inhibiting_right_target, transform=[[1]]*300)
-
+            nengo.Connection(self.bg.output[1], inhibiting_left_target, transform=[[1]] * 300)
+            nengo.Connection(self.bg.output[1], inhibiting_right_target, transform=[[1]] * 300)
+        # self.servos.add(self.left_servos, np.asarray([0, 0, 0]))
+        # self.servos.add(self.right_servos, np.asarray([0, 0, 0]))
 
 
 if __name__ == "__main__":
