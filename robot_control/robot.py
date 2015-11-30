@@ -103,11 +103,12 @@ class Robot(nengo.Network):
             # Done. Provided from the "outside"
 
             # When gesturing, inhibit the target function (will return to idling position)
-            inhibiting_left_target = self.left_target_position.add_neuron_input()
-            inhibiting_right_target = self.right_target_position.add_neuron_input()
+            for ensemble in self.left_target_position.all_ensembles:
+                nengo.Connection(self.bg.output[1], ensemble.neurons, transform=[[1]] * ensemble.n_neurons)
 
-            nengo.Connection(self.bg.output[1], inhibiting_left_target, transform=[[1]] * 300)
-            nengo.Connection(self.bg.output[1], inhibiting_right_target, transform=[[1]] * 300)
+
+            for ensemble in self.right_target_position.all_ensembles:
+                nengo.Connection(self.bg.output[1], ensemble.neurons, transform=[[1]] * ensemble.n_neurons)
         # self.servos.add(self.left_servos, np.asarray([0, 0, 0]))
         # self.servos.add(self.right_servos, np.asarray([0, 0, 0]))
 
