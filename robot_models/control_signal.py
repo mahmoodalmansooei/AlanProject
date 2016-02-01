@@ -1,6 +1,7 @@
 __author__ = 'Petrut Bogdan'
 
 import nengo
+import numpy as np
 
 
 class ControlSignal(nengo.Node):
@@ -22,6 +23,7 @@ class ControlSignal(nengo.Node):
         super(ControlSignal, self).__init__(output=self.control_signal_output,
                                             size_out=size_out,
                                             label=label)
+        self.container.add(self, np.asarray([0]*size_out))
 
     def control_signal_output(self, time):
         """
