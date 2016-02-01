@@ -93,3 +93,8 @@ class AlanRobot(object):
         :rtype: list
         """
         return container.dictionary.keys()
+
+    @staticmethod
+    def labels(container):
+        for k in container.dictionary.keys():
+            yield k.label

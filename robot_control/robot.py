@@ -88,8 +88,8 @@ class Robot(nengo.Network):
             nengo.Connection(left_error, self.left_motors, synapse=tau, transform=np.eye(3) * self.motor_gain)
             nengo.Connection(right_error, self.right_motors, synapse=tau, transform=np.eye(3) * self.motor_gain)
 
-            self.left_servos = Servo(container=self.servos, size_in=3)
-            self.right_servos = Servo(container=self.servos, size_in=3)
+            self.left_servos = Servo(container=self.servos, size_in=3, label="left_servos")
+            self.right_servos = Servo(container=self.servos, size_in=3, label="right_servos")
 
             nengo.Connection(self.left_current_position.output, self.left_servos, synapse=tau)
             nengo.Connection(self.right_current_position.output, self.right_servos, synapse=tau)
@@ -152,6 +152,7 @@ class Robot(nengo.Network):
             for ensemble in self.right_target_position.all_ensembles:
                 nengo.Connection(self.arm_selector.output[0], ensemble.neurons, transform=[[1]] * ensemble.n_neurons)
 
+            print self.servos.dictionary
 
 if __name__ == "__main__":
     r = Robot()
