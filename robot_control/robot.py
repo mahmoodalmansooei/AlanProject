@@ -1,3 +1,5 @@
+from robot_utils.dot_product import DotProduct
+
 __author__ = 'Petrut Bogdan'
 
 import nengo
@@ -40,13 +42,15 @@ class Robot(nengo.Network):
 
         with self:
             # Inputs
-            self.action = ControlSignal(container=self.controls, size_out=2)
-            self.direction = ControlSignal(container=self.controls, size_out=2)
+            self.action = ControlSignal(container=self.controls, size_out=2, label='action')
+            self.direction = ControlSignal(container=self.controls, size_out=2, label='direction')
             self.sound = nengo.Node(lambda t: np.sin(2 * t))
+            self.silence = ControlSignal(container=self.controls, size_out=3, label='silence')
 
             # Initialisation
-            self.controls.add(self.action, np.asarray([0, 1.]))
-            self.controls.add(self.direction, np.asarray([.5, .5]))
+            self.controls.update(self.action, np.asarray([0, 1.]))
+            self.controls.update(self.direction, np.asarray([0., 1.]))
+            self.controls.update(self.silence, np.asarray([.3, .7, 1]))
 
             # Hidden layer
             self.left_current_position = nengo.networks.EnsembleArray(n_neurons, 3)
@@ -63,6 +67,9 @@ class Robot(nengo.Network):
 
             nengo.Connection(self.right_target_position.output, self.right_error.input[[0, 2, 4]])
             nengo.Connection(self.right_current_position.output, self.right_error.input[[1, 3, 5]])
+
+            nengo.Connection(self.silence, self.left_target_position.input)
+            nengo.Connection(self.silence, self.right_target_position.input)
 
             # Feedback
             left_error = self.left_error.add_output("error", error)
@@ -113,8 +120,37 @@ class Robot(nengo.Network):
 
             for ensemble in self.right_target_position.all_ensembles:
                 nengo.Connection(self.bg.output[1], ensemble.neurons, transform=[[1]] * ensemble.n_neurons)
-        # self.servos.add(self.left_servos, np.asarray([0, 0, 0]))
-        # self.servos.add(self.right_servos, np.asarray([0, 0, 0]))
+
+            # Select an arm for silencing / gesturing
+
+            self.left_dp = DotProduct()
+            self.right_dp = DotProduct()
+
+            self.left = nengo.Node(output=LEFT)
+            self.right = nengo.Node(output=RIGHT)
+
+            nengo.Connection(self.direction, self.left_dp.in_A)
+            nengo.Connection(self.left, self.left_dp.in_B)
+
+            nengo.Connection(self.direction, self.right_dp.in_A)
+            nengo.Connection(self.right, self.right_dp.in_B)
+
+            L = nengo.Ensemble(100, 1)
+            R = nengo.Ensemble(100, 1)
+            nengo.Connection(self.left_dp.output, L)
+            nengo.Connection(self.right_dp.output, R)
+
+            self.arm_selector = nengo.networks.BasalGanglia(2)
+
+            nengo.Connection(L, self.arm_selector.input[0], function=lambda x: np.abs(x))
+            nengo.Connection(R, self.arm_selector.input[1], function=lambda x: np.abs(x))
+
+            # Basal ganglia will now inhibit the opposing arm
+            for ensemble in self.left_target_position.all_ensembles:
+                nengo.Connection(self.arm_selector.output[1], ensemble.neurons, transform=[[1]] * ensemble.n_neurons)
+
+            for ensemble in self.right_target_position.all_ensembles:
+                nengo.Connection(self.arm_selector.output[0], ensemble.neurons, transform=[[1]] * ensemble.n_neurons)
 
 
 if __name__ == "__main__":
