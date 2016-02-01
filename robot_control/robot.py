@@ -4,6 +4,7 @@ import nengo
 import numpy as np
 from robot_interface.container import Container
 from robot_models.servo import Servo
+from robot_models.control_signal import ControlSignal
 
 LEFT = np.array([0.7, 0.7])
 RIGHT = np.array([0.7, -0.7])
@@ -34,14 +35,19 @@ class Robot(nengo.Network):
         def error(vector):
             return np.sign(vector[0] - vector[1]) * ((vector[0] - vector[1]) ** 2)
 
-
         self.servos = Container()
+        self.controls = Container()
 
         with self:
             # Inputs
-            self.action = nengo.Node(size_in=2)
-            self.direction = nengo.Node(size_in=2)
-            self.sound = nengo.Node(size_in=1)
+            self.action = ControlSignal(container=self.controls, size_out=2)
+            self.direction = ControlSignal(container=self.controls, size_out=2)
+            self.sound = nengo.Node(lambda t: np.sin(2 * t))
+
+            # Initialisation
+            self.controls.add(self.action, np.asarray([0, 1.]))
+            self.controls.add(self.direction, np.asarray([.5, .5]))
+
             # Hidden layer
             self.left_current_position = nengo.networks.EnsembleArray(n_neurons, 3)
             self.right_current_position = nengo.networks.EnsembleArray(n_neurons, 3)
@@ -67,7 +73,6 @@ class Robot(nengo.Network):
 
             nengo.Connection(self.left_current_position.output, self.left_current_position.input, synapse=tau)
             nengo.Connection(self.right_current_position.output, self.right_current_position.input, synapse=tau)
-
 
             # Output
             self.left_motors = nengo.Node(size_in=3)
@@ -105,7 +110,6 @@ class Robot(nengo.Network):
             # When gesturing, inhibit the target function (will return to idling position)
             for ensemble in self.left_target_position.all_ensembles:
                 nengo.Connection(self.bg.output[1], ensemble.neurons, transform=[[1]] * ensemble.n_neurons)
-
 
             for ensemble in self.right_target_position.all_ensembles:
                 nengo.Connection(self.bg.output[1], ensemble.neurons, transform=[[1]] * ensemble.n_neurons)
