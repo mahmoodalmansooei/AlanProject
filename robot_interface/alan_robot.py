@@ -84,6 +84,16 @@ class AlanRobot(object):
         """
         return self.robot.motors
 
+    @property
+    def servos(self):
+        """
+        Getter for motors container
+
+        :return: Container filled with all the motors in the robot
+        :rtype: Container
+        """
+        return self.robot.servos
+
     @staticmethod
     def contents(container):
         """
