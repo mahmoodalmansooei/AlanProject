@@ -5,6 +5,11 @@ import time
 import thread
 import serial
 from robot_interface.alan_robot import AlanRobot
+from scipy.interpolate import interp1d
+
+servo_to_com = dict()
+index_to_range = {0: [51, 100], 1: [101, 150], 2: [151, 200]}
+nengo_radius = 1
 
 luke = AlanRobot(run_time=86400, period=10.0)  # Run for 24 hours with default period
 # leia = AlanRobot(run_time=86400, period=10.0)  # Run for 24 hours with default period
@@ -19,7 +24,43 @@ ser2 = serial.Serial(usbPort2, 57600)
 ser3 = serial.Serial(usbPort3, 57600)
 ser4 = serial.Serial(usbPort4, 57600)
 
+servo_to_com[AlanRobot.key_with_label_in_container("left_servos", luke.servos)] = ser1
+servo_to_com[AlanRobot.key_with_label_in_container("right_servos", luke.servos)] = ser2
 
+
+# servo_to_com[AlanRobot.key_with_label_in_container("left_servos", leia.servos)] = ser3
+# servo_to_com[AlanRobot.key_with_label_in_container("right_servos", leia.servos)] = ser4
+
+def transmission_callback(servo, data):
+    '''
+    Callback function that sends the relevant data sequentially to the respective controlling Arduinos.
+    More specifically, the data in the servos from Nengo is linearly interpolated into the accepted range for that
+    joint (by indexing into index_to_range and applying interp1d from scipy) and sending the rounded value down the
+    serial point resulting from indexing the servo into servo_to_com.
+    :param servo:
+    :param data: numpy.ndarray
+    :return: None
+    '''
+    global index_to_range, servo_to_com, nengo_radius
+    for index in xrange(data.size):
+        servo_range = index_to_range[index]
+        interpolation = interp1d([-nengo_radius, nengo_radius], servo_range)
+        com_link = servo_to_com[servo]
+        # ser1.write(bytes([49]))
+        # TODO Refactor this... brain is dead atm
+        normalised_data = data[index]
+        if normalised_data < -nengo_radius:
+            normalised_data = -nengo_radius
+        elif normalised_data > nengo_radius:
+            normalised_data = nengo_radius
+
+        com_link.write(bytes(
+            [int(interpolation(normalised_data))]
+        ))
+
+
+luke.servos.set_default_callback(transmission_callback)
+# leia.servos.set_default_callback(transmission_callback)
 
 # Step 1
 sock = socket.socket()
@@ -105,6 +146,7 @@ while (1):
                         event = agent
                         # print(event)
                         if (event == "agent1" and interrupted == False):
+                            # TODO Remove useless writes here and just pass input into neural sim
                             motorMovementRobot1 = 1
                             motorMovementRobot2 = 0
                             ser1.write(bytes([49]))
@@ -129,6 +171,7 @@ while (1):
                             # ser4.write(bytes([151]))
                             print("agent1 speech sequence")
                         elif (event == "agent2" and interrupted == False):
+                            # TODO Remove useless writes here and just pass input into neural sim
                             motorMovementRobot1 = 0
                             motorMovementRobot2 = 1
                             # ser1.write(bytes([51]))
