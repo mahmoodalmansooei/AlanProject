@@ -44,12 +44,12 @@ class Robot(nengo.Network):
             # Inputs
             self.action = ControlSignal(container=self.controls, size_out=2, label='action')
             self.direction = ControlSignal(container=self.controls, size_out=2, label='direction')
-            self.sound = nengo.Node(lambda t: np.sin(2 * t))
+            self.sound = nengo.Node(lambda t: np.sin(t))
             self.silence = ControlSignal(container=self.controls, size_out=3, label='silence')
 
             # Initialisation
-            self.controls.update(self.action, np.asarray([0, 1.]))
-            self.controls.update(self.direction, np.asarray([0., 1.]))
+            self.controls.update(self.action, np.asarray([1., 0.]))
+            self.controls.update(self.direction, np.asarray([.7, .7]))
             self.controls.update(self.silence, np.asarray([.3, .7, 1]))
 
             # Hidden layer
@@ -105,8 +105,8 @@ class Robot(nengo.Network):
             self.rhythm = nengo.Ensemble(n_neurons, 1)
             nengo.Connection(self.sound, self.rhythm)
 
-            nengo.Connection(self.rhythm, self.left_error.input[[2]], transform=[[-1. / 5]])
-            nengo.Connection(self.rhythm, self.right_error.input[[2]], transform=[[1. / 5]])
+            nengo.Connection(self.rhythm, self.left_error.input[[4]], transform=[[-1. / 3]])
+            nengo.Connection(self.rhythm, self.right_error.input[[4]], transform=[[1. / 3]])
 
             # If silencing, inhibit rhythm
             nengo.Connection(self.bg.output[0], self.rhythm.neurons, transform=[[1]] * self.rhythm.n_neurons)

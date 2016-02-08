@@ -12,6 +12,7 @@ index_to_range = {0: [51, 100], 1: [101, 150], 2: [151, 200]}
 nengo_radius = 1
 
 luke = AlanRobot(run_time=86400, period=10.0)  # Run for 24 hours with default period
+# luke = AlanRobot(run_time=15, period=10.0)  # Run for 24 hours with default period
 # leia = AlanRobot(run_time=86400, period=10.0)  # Run for 24 hours with default period
 
 usbPort1 = 4
@@ -54,8 +55,11 @@ def transmission_callback(servo, data):
         elif normalised_data > nengo_radius:
             normalised_data = nengo_radius
 
+        interpolated_output = int(interpolation(normalised_data))
+        print interpolated_output
+
         com_link.write(bytes(
-            [int(interpolation(normalised_data))]
+            [interpolated_output]
         ))
 
 
@@ -94,7 +98,7 @@ def read(threadName):
 
 
 def send(threadName, sentence=""):
-    sock.send(bytes(sentence, "utf-8"))
+    sock.send(bytes(sentence))
     print("Succesfully sent, ", sentence)
 
 
@@ -122,6 +126,7 @@ send("Send",
 
 interrupted = False
 
+print "oh my life -------------"
 luke.start_simulation()
 # leia.start_simulation()
 
@@ -153,10 +158,11 @@ while (1):
                             time.sleep(0.01)
                             ser2.write(bytes([49]))
                             time.sleep(0.01)
-                            ser3.write(bytes([48]))
-                            time.sleep(0.01)
-                            ser4.write(bytes([48]))
-                            time.sleep(0.01)
+                            # ser3.write(bytes([48]))
+                            # time.sleep(0.01)
+                            # ser4.write(bytes([48]))
+                            # time.sleep(0.01)
+
                             # ser3.write(bytes([51]))
                             # ser3.write(bytes([101]))
                             # ser3.write(bytes([151]))
@@ -184,10 +190,10 @@ while (1):
                             time.sleep(0.01)
                             ser2.write(bytes([48]))
                             time.sleep(0.01)
-                            ser3.write(bytes([49]))
-                            time.sleep(0.01)
-                            ser4.write(bytes([49]))
-                            time.sleep(0.01)
+                            # ser3.write(bytes([49]))
+                            # time.sleep(0.01)
+                            # ser4.write(bytes([49]))
+                            # time.sleep(0.01)
                             print("agent2 speech sequence")
                     if (b[0] == "display"):
                         b[1] = b[1][1:-1]

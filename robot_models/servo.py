@@ -4,7 +4,7 @@ import nengo
 
 
 class Servo(nengo.Node):
-    def __init__(self, container, size_in=None, label=None):
+    def __init__(self, container, size_in=None, label=None, sampling_period=100):
         """
         A motor is a type of node that sends live information back for
         processing.
@@ -21,6 +21,9 @@ class Servo(nengo.Node):
         :rtype: Servo
         """
         self.container = container
+        self.dt = 0.001
+        self.sampling_period = sampling_period * self.dt
+        self.previous_time = -self.sampling_period
         super(Servo, self).__init__(output=self.servo_output, size_in=1 if not size_in else size_in,
                                     label=label)
 
@@ -36,4 +39,6 @@ class Servo(nengo.Node):
         :param value: The current value of the motor node
         :type value: floats
         """
-        self.container.update(self, value)
+        if time - self.previous_time >= self.sampling_period:
+            self.previous_time = time
+            self.container.update(self, value)
