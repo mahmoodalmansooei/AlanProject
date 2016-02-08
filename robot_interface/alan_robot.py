@@ -108,3 +108,9 @@ class AlanRobot(object):
     def labels(container):
         for k in container.dictionary.keys():
             yield k.label
+
+    @staticmethod
+    def key_with_label_in_container(label, container):
+        for k in container.dictionary.keys():
+            if k.label == label:
+                return k

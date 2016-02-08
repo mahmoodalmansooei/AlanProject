@@ -152,7 +152,5 @@ class Robot(nengo.Network):
             for ensemble in self.right_target_position.all_ensembles:
                 nengo.Connection(self.arm_selector.output[0], ensemble.neurons, transform=[[1]] * ensemble.n_neurons)
 
-            print self.servos.dictionary
-
 if __name__ == "__main__":
     r = Robot()
