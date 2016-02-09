@@ -1,6 +1,7 @@
 __author__ = 'Petrut Bogdan'
 
 import nengo
+import numpy as np
 
 
 class Servo(nengo.Node):
@@ -22,6 +23,7 @@ class Servo(nengo.Node):
         """
         self.container = container
         self.dt = 0.001
+        self.delta = 0.2
         self.sampling_period = sampling_period * self.dt
         self.previous_time = -self.sampling_period
         super(Servo, self).__init__(output=self.servo_output, size_in=1 if not size_in else size_in,
@@ -40,5 +42,8 @@ class Servo(nengo.Node):
         :type value: floats
         """
         if time - self.previous_time >= self.sampling_period:
+            update_table = [np.abs(value - self.container[self]) >= self.delta]
             self.previous_time = time
-            self.container.update(self, value)
+            if np.any(update_table):
+                delta_step_value = [value[i] if update_table[i] else self.container[self][i] for i in range(value.size)]
+                self.container.update(self, value)

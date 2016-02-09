@@ -91,8 +91,8 @@ class Robot(nengo.Network):
             self.left_servos = Servo(container=self.servos, size_in=3, label="left_servos")
             self.right_servos = Servo(container=self.servos, size_in=3, label="right_servos")
 
-            nengo.Connection(self.left_current_position.output, self.left_servos, synapse=tau)
-            nengo.Connection(self.right_current_position.output, self.right_servos, synapse=tau)
+            nengo.Connection(self.left_current_position.output, self.left_servos, synapse=.5)
+            nengo.Connection(self.right_current_position.output, self.right_servos, synapse=.5)
 
             # Action selection
             # The 2 actions are: silence and gesture
@@ -105,8 +105,8 @@ class Robot(nengo.Network):
             self.rhythm = nengo.Ensemble(n_neurons, 1)
             nengo.Connection(self.sound, self.rhythm)
 
-            nengo.Connection(self.rhythm, self.left_error.input[[4]], transform=[[-1. / 3]])
-            nengo.Connection(self.rhythm, self.right_error.input[[4]], transform=[[1. / 3]])
+            nengo.Connection(self.rhythm, self.left_error.input[[4]], transform=[[-1.]]) # TODO apply sub-unit transfrom
+            nengo.Connection(self.rhythm, self.right_error.input[[4]], transform=[[1.]])
 
             # If silencing, inhibit rhythm
             nengo.Connection(self.bg.output[0], self.rhythm.neurons, transform=[[1]] * self.rhythm.n_neurons)
