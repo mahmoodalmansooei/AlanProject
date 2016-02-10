@@ -12,12 +12,24 @@ servo_to_com = dict()
 index_to_range = {0: [51, 100], 1: [101, 150], 2: [151, 200]}
 nengo_radius = 1
 
+simulation_params_luke = {
+    'hostname': '192.168.240.1',
+    'width': 8,
+    'height': 8
+}
+
+simulation_params_leia = {
+    'hostname': '192.168.240.3',
+    'width': 8,
+    'height': 8
+}
+
+# TODO - Run booting etc. in parallel
 luke = AlanRobot(run_time=86400,
-                 period=10.0)  # Run for 24 hours with default period
+                 period=10.0, **simulation_params_luke)  # Run for 24 hours with default period
 # luke = AlanRobot(run_time=15, period=10.0)  # Run for 24 hours with default period
-# leia = AlanRobot(run_time=86400, period=10.0)  # Run for 24 hours with default period
-# TODO fix placeholder
-leia = luke
+leia = AlanRobot(run_time=86400,
+                 period=10.0, **simulation_params_leia)  # Run for 24 hours with default period
 
 usbPort1 = 4
 usbPort2 = 5
@@ -46,6 +58,7 @@ luke_silence_position = np.asarray([.3, .7, 1])
 leia_action = np.asarray([1., 0.])
 leia_direction = np.asarray([.7, .7])
 leia_silence_position = np.asarray([.3, .7, 1])
+
 
 def transmission_callback(servo, data):
     '''

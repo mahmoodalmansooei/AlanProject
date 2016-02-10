@@ -22,13 +22,11 @@ class AlanRobot(object):
             they each represent.
         :type simulation_parameters: dict
         """
-        if simulation_parameters:
-            self.robot = Robot(simulation_parameters)
-        else:
-            self.robot = Robot()
+        self.robot = Robot()
 
         self.simulation_control = SimulationControl(
-            nengo_spinnaker.Simulator(self.robot, period=period), run_time)
+            nengo_spinnaker.Simulator(self.robot, period=period,
+                                      **simulation_parameters), run_time)
 
     def start_simulation(self):
         """
@@ -159,5 +157,3 @@ class AlanRobot(object):
         action = AlanRobot.key_with_label_in_container("action",
                                                        self.controls)
         self.controls.update(action, np.asarray([1., 0.]))
-
-
