@@ -49,7 +49,7 @@ class Robot(nengo.Network):
 
             # Initialisation
             self.controls.update(self.action, np.asarray([1., 0.]))
-            self.controls.update(self.direction, np.asarray([.7, .7]))
+            self.controls.update(self.direction, np.asarray([1., 0.]))
             self.controls.update(self.silence, np.asarray([.3, .7, 1]))
 
             # Hidden layer
@@ -105,8 +105,14 @@ class Robot(nengo.Network):
             self.rhythm = nengo.Ensemble(n_neurons, 1)
             nengo.Connection(self.sound, self.rhythm)
 
-            nengo.Connection(self.rhythm, self.left_error.input[[0]], transform=[[-.5]]) # TODO apply sub-unit transfrom
-            nengo.Connection(self.rhythm, self.right_error.input[[0]], transform=[[.5]])
+            nengo.Connection(self.rhythm, self.left_error.input[[0]], transform=[[-.6]])
+            nengo.Connection(self.rhythm, self.right_error.input[[0]], transform=[[.6]])
+
+            nengo.Connection(self.rhythm, self.left_error.input[[2]], transform=[[-.3]])
+            nengo.Connection(self.rhythm, self.right_error.input[[2]], transform=[[.3]])
+
+            nengo.Connection(self.rhythm, self.left_error.input[[4]], transform=[[-.8]])
+            nengo.Connection(self.rhythm, self.right_error.input[[4]], transform=[[.8]])
 
             # If silencing, inhibit rhythm
             nengo.Connection(self.bg.output[0], self.rhythm.neurons, transform=[[1]] * self.rhythm.n_neurons)

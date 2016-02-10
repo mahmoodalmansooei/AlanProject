@@ -40,7 +40,7 @@ class Container(object):
         :param key: The :py:mod:`.robot_models` object to track
         :type key: class from :py:mod:`.robot_models`
         :param value: The value associated with the key
-        :type value: float
+        :type value: numpy.ndarray
         :param callback: The method to be called when a value is updated. Leave
             as None to use default callback.
         :type callback: callable

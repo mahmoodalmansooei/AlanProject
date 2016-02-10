@@ -3,6 +3,7 @@ __author__ = 'Petrut Bogdan'
 from robot_control.robot import Robot
 from simulation_control import SimulationControl
 import nengo_spinnaker
+import numpy as np
 
 
 class AlanRobot(object):
@@ -114,3 +115,49 @@ class AlanRobot(object):
         for k in container.dictionary.keys():
             if k.label == label:
                 return k
+
+    def silence(self, position=np.asarray([.3, .7, 1])):
+        """
+        Method that causes the robot to make a silencing gesture
+        :param position:
+        :type position:
+        :return:
+        :rtype:
+        """
+        # retrieve control signal responsible for position
+        silence = AlanRobot.key_with_label_in_container("silence",
+                                                        self.controls)
+        self.controls.update(silence, position)
+
+        # retrieve control signal responsible for direction
+        direction = AlanRobot.key_with_label_in_container("direction",
+                                                          self.controls)
+
+        # choose a random direction (either left or right)
+        self.controls.update(direction, np.asarray(
+            [.7, .7]) if np.random.rand() > .5 else np.asarray([-.7, .7]))
+
+        # retrieve control signal responsible for action selection
+        action = AlanRobot.key_with_label_in_container("action",
+                                                       self.controls)
+        self.controls.update(action, np.asarray([0., 1.]))
+
+    def gesture(self):
+        """
+        Method that causes the robot to gesture
+        :return:
+        :rtype:
+        """
+        # retrieve control signal responsible for direction
+        direction = AlanRobot.key_with_label_in_container("direction",
+                                                          self.controls)
+
+        # choose a random direction (either left or right)
+        self.controls.update(direction, np.asarray([1., 0.]))
+
+        # retrieve control signal responsible for action selection
+        action = AlanRobot.key_with_label_in_container("action",
+                                                       self.controls)
+        self.controls.update(action, np.asarray([1., 0.]))
+
+

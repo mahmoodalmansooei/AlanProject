@@ -6,14 +6,18 @@ import thread
 import serial
 from robot_interface.alan_robot import AlanRobot
 from scipy.interpolate import interp1d
+import numpy as np
 
 servo_to_com = dict()
 index_to_range = {0: [51, 100], 1: [101, 150], 2: [151, 200]}
 nengo_radius = 1
 
-luke = AlanRobot(run_time=86400, period=10.0)  # Run for 24 hours with default period
+luke = AlanRobot(run_time=86400,
+                 period=10.0)  # Run for 24 hours with default period
 # luke = AlanRobot(run_time=15, period=10.0)  # Run for 24 hours with default period
 # leia = AlanRobot(run_time=86400, period=10.0)  # Run for 24 hours with default period
+# TODO fix placeholder
+leia = luke
 
 usbPort1 = 4
 usbPort2 = 5
@@ -25,12 +29,23 @@ ser2 = serial.Serial(usbPort2, 57600)
 ser3 = serial.Serial(usbPort3, 57600)
 ser4 = serial.Serial(usbPort4, 57600)
 
-servo_to_com[AlanRobot.key_with_label_in_container("left_servos", luke.servos)] = ser1
-servo_to_com[AlanRobot.key_with_label_in_container("right_servos", luke.servos)] = ser2
-
+servo_to_com[
+    AlanRobot.key_with_label_in_container("left_servos", luke.servos)] = ser1
+servo_to_com[
+    AlanRobot.key_with_label_in_container("right_servos", luke.servos)] = ser2
 
 # servo_to_com[AlanRobot.key_with_label_in_container("left_servos", leia.servos)] = ser3
 # servo_to_com[AlanRobot.key_with_label_in_container("right_servos", leia.servos)] = ser4
+
+luke_moving = True
+
+luke_action = np.asarray([1., 0.])
+luke_direction = np.asarray([.7, .7])
+luke_silence_position = np.asarray([.3, .7, 1])
+
+leia_action = np.asarray([1., 0.])
+leia_direction = np.asarray([.7, .7])
+leia_silence_position = np.asarray([.3, .7, 1])
 
 def transmission_callback(servo, data):
     '''
@@ -38,29 +53,26 @@ def transmission_callback(servo, data):
     More specifically, the data in the servos from Nengo is linearly interpolated into the accepted range for that
     joint (by indexing into index_to_range and applying interp1d from scipy) and sending the rounded value down the
     serial point resulting from indexing the servo into servo_to_com.
-    :param servo:
+    :param servo: robot_models.servo
     :param data: numpy.ndarray
     :return: None
     '''
-    global index_to_range, servo_to_com, nengo_radius
-    for index in xrange(data.size):
-        servo_range = index_to_range[index]
-        interpolation = interp1d([-nengo_radius, nengo_radius], servo_range)
-        com_link = servo_to_com[servo]
-        # ser1.write(bytearray([49]))
-        # TODO Refactor this... brain is dead atm
-        normalised_data = data[index]
-        if normalised_data < -nengo_radius:
-            normalised_data = -nengo_radius
-        elif normalised_data > nengo_radius:
-            normalised_data = nengo_radius
+    global index_to_range, servo_to_com, nengo_radius, luke_moving, luke, leia
 
-        interpolated_output = int(interpolation(normalised_data))
-        print(interpolated_output)
+    if servo in luke.servos.dictionary and luke_moving or \
+                            servo in leia.servos.dictionary and not luke_moving:
+        # value clipping [-1, 1]
+        data = np.clip(data, -nengo_radius, nengo_radius)
+        for index in xrange(data.size):
+            servo_range = index_to_range[index]
+            interpolation = interp1d([-nengo_radius, nengo_radius], servo_range)
+            com_link = servo_to_com[servo]
 
-        com_link.write(bytearray(
-            [interpolated_output]
-        ))
+            interpolated_output = int(interpolation(data))
+
+            com_link.write(bytearray(
+                [interpolated_output]
+            ))
 
 
 luke.servos.set_default_callback(transmission_callback)
@@ -89,7 +101,8 @@ def read(threadName):
     for i in b:
         c = i.split()
         if (len(c) > 0 and len(b) > 1):
-            if ((str(c[0]) == "EVENT" or str(c[0]) == "VENT" or str(c[0]) == "ENT") and (len(c) >= 3)):
+            if ((str(c[0]) == "EVENT" or str(c[0]) == "VENT" or str(
+                    c[0]) == "ENT") and (len(c) >= 3)):
                 e = []
                 d = b[1]
                 e.append(c[1])
@@ -138,10 +151,8 @@ while (1):
     close = 0
     try:
         if a != None:
-            # print(a[0])
             if (a[0] == "action.speech"):
                 b = a[1].split(",")
-                # print(b)
                 for i in b:
                     i = str(i)
                     b = i.split(":")
@@ -150,103 +161,45 @@ while (1):
                         b[1] = b[1][1:-1]
                         agent = b[1]
                         event = agent
-                        # print(event)
                         if (event == "agent1" and interrupted == False):
-                            # TODO Remove useless writes here and just pass input into neural sim
-                            motorMovementRobot1 = 1
-                            motorMovementRobot2 = 0
-                            ser1.write(bytearray([49]))
+                            # TODO pass input into neural sim
+                            luke_moving = True
+                            ser3.write(bytearray([48]))
                             time.sleep(0.01)
-                            ser2.write(bytearray([49]))
+                            ser4.write(bytearray([48]))
                             time.sleep(0.01)
-                            # ser3.write(bytearray([48]))
-                            # time.sleep(0.01)
-                            # ser4.write(bytearray([48]))
-                            # time.sleep(0.01)
+                            luke.gesture()
 
-                            # ser3.write(bytearray([51]))
-                            # ser3.write(bytearray([101]))
-                            # ser3.write(bytearray([151]))
-                            # ser4.write(bytearray([51]))
-                            # ser4.write(bytearray([101]))
-                            # ser4.write(bytearray([151]))
-                            # ser3.write(bytearray([51]))
-                            # ser3.write(bytearray([101]))
-                            # ser3.write(bytearray([151]))
-                            # ser4.write(bytearray([51]))
-                            # ser4.write(bytearray([101]))
-                            # ser4.write(bytearray([151]))
                             print("agent1 speech sequence")
                         elif (event == "agent2" and interrupted == False):
-                            # TODO Remove useless writes here and just pass input into neural sim
-                            motorMovementRobot1 = 0
-                            motorMovementRobot2 = 1
-                            # ser1.write(bytearray([51]))
-                            # ser1.write(bytearray([101]))
-                            # ser1.write(bytearray([151]))
-                            # ser2.write(bytearray([51]))
-                            # ser2.write(bytearray([101]))
-                            # ser2.write(bytearray([151]))
+                            # TODO pass input into neural sim
+                            luke_moving = False
                             ser1.write(bytearray([48]))
                             time.sleep(0.01)
                             ser2.write(bytearray([48]))
                             time.sleep(0.01)
-                            # ser3.write(bytearray([49]))
-                            # time.sleep(0.01)
-                            # ser4.write(bytearray([49]))
-                            # time.sleep(0.01)
+                            leia.gesture()
                             print("agent2 speech sequence")
                     if (b[0] == "display"):
                         b[1] = b[1][1:-1]
-                        if (b[1] == " hm what was i saying" or b[1] == " oh what were you saying?"):
+                        if (b[1] == " hm what was i saying" or b[
+                            1] == " oh what were you saying?"):
                             event = "Interrupt completed"
                             interrupted = False
                             print(event)
-            # elif (a[0] == "sense.user.enter"):
-            # 	event = "userEntered"
-            # 	print(event)
-            # elif (a[0] == "sense.user.leave"):
-            # 	event = "userLeft"
-            # 	print(event)
             elif (a[0] == "action.speech.stop"):
                 event = "Interrupted"
                 interrupted = True
-                ser1.write(bytearray([50]))
-                time.sleep(0.01)
-                ser2.write(bytearray([50]))
-                time.sleep(0.01)
+
+                luke.silence()
+
                 ser3.write(bytearray([48]))
                 time.sleep(0.01)
                 ser4.write(bytearray([48]))
                 time.sleep(0.01)
-                # ser1.write(bytearray([90]))
-                # ser1.write(bytearray([140]))
-                # ser1.write(bytearray([151]))
-                # ser2.write(bytearray([51]))
-                # ser2.write(bytearray([101]))
-                # ser2.write(bytearray([151]))
-                # ser3.write(bytearray([51]))
-                # ser3.write(bytearray([101]))
-                # ser3.write(bytearray([151]))
-                # ser4.write(bytearray([51]))
-                # ser4.write(bytearray([101]))
-                # ser4.write(bytearray([151]))
                 print(event)
     except:
         pass
-        # elif (event == "Interrupted" or event == "waiting3sec"):
-    #	motorMovementRobot1 = 0
-    #	motorMovementRobot2 = 0
-    #	ser1.write(bytearray([0]))
-    # else:
-    #	motorMovementRobot1 = 0
-    #	motorMovementRobot2 = 0
-    #	ser1.write(bytearray([0]))
-
-    # if motorMovementRobot1 == 1:
-    #	ser1.write(bytearray([49]))
-    # else:
-    #	ser1.write(bytearray([48]))
 
     if (close):
         send("Send", "CLOSE\n")
