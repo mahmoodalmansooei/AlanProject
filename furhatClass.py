@@ -47,7 +47,7 @@ def transmission_callback(servo, data):
         servo_range = index_to_range[index]
         interpolation = interp1d([-nengo_radius, nengo_radius], servo_range)
         com_link = servo_to_com[servo]
-        # ser1.write(bytes([49]))
+        # ser1.write(bytearray([49]))
         # TODO Refactor this... brain is dead atm
         normalised_data = data[index]
         if normalised_data < -nengo_radius:
@@ -56,9 +56,9 @@ def transmission_callback(servo, data):
             normalised_data = nengo_radius
 
         interpolated_output = int(interpolation(normalised_data))
-        print interpolated_output
+        print(interpolated_output)
 
-        com_link.write(bytes(
+        com_link.write(bytearray(
             [interpolated_output]
         ))
 
@@ -98,7 +98,7 @@ def read(threadName):
 
 
 def send(threadName, sentence=""):
-    sock.send(bytes(sentence))
+    sock.send(bytearray(sentence))
     print("Succesfully sent, ", sentence)
 
 
@@ -126,7 +126,8 @@ send("Send",
 
 interrupted = False
 
-print "oh my life -------------"
+print("oh my life -------------")
+time.sleep(10)  # <--
 luke.start_simulation()
 # leia.start_simulation()
 
@@ -154,45 +155,45 @@ while (1):
                             # TODO Remove useless writes here and just pass input into neural sim
                             motorMovementRobot1 = 1
                             motorMovementRobot2 = 0
-                            ser1.write(bytes([49]))
+                            ser1.write(bytearray([49]))
                             time.sleep(0.01)
-                            ser2.write(bytes([49]))
+                            ser2.write(bytearray([49]))
                             time.sleep(0.01)
-                            # ser3.write(bytes([48]))
+                            # ser3.write(bytearray([48]))
                             # time.sleep(0.01)
-                            # ser4.write(bytes([48]))
+                            # ser4.write(bytearray([48]))
                             # time.sleep(0.01)
 
-                            # ser3.write(bytes([51]))
-                            # ser3.write(bytes([101]))
-                            # ser3.write(bytes([151]))
-                            # ser4.write(bytes([51]))
-                            # ser4.write(bytes([101]))
-                            # ser4.write(bytes([151]))
-                            # ser3.write(bytes([51]))
-                            # ser3.write(bytes([101]))
-                            # ser3.write(bytes([151]))
-                            # ser4.write(bytes([51]))
-                            # ser4.write(bytes([101]))
-                            # ser4.write(bytes([151]))
+                            # ser3.write(bytearray([51]))
+                            # ser3.write(bytearray([101]))
+                            # ser3.write(bytearray([151]))
+                            # ser4.write(bytearray([51]))
+                            # ser4.write(bytearray([101]))
+                            # ser4.write(bytearray([151]))
+                            # ser3.write(bytearray([51]))
+                            # ser3.write(bytearray([101]))
+                            # ser3.write(bytearray([151]))
+                            # ser4.write(bytearray([51]))
+                            # ser4.write(bytearray([101]))
+                            # ser4.write(bytearray([151]))
                             print("agent1 speech sequence")
                         elif (event == "agent2" and interrupted == False):
                             # TODO Remove useless writes here and just pass input into neural sim
                             motorMovementRobot1 = 0
                             motorMovementRobot2 = 1
-                            # ser1.write(bytes([51]))
-                            # ser1.write(bytes([101]))
-                            # ser1.write(bytes([151]))
-                            # ser2.write(bytes([51]))
-                            # ser2.write(bytes([101]))
-                            # ser2.write(bytes([151]))
-                            ser1.write(bytes([48]))
+                            # ser1.write(bytearray([51]))
+                            # ser1.write(bytearray([101]))
+                            # ser1.write(bytearray([151]))
+                            # ser2.write(bytearray([51]))
+                            # ser2.write(bytearray([101]))
+                            # ser2.write(bytearray([151]))
+                            ser1.write(bytearray([48]))
                             time.sleep(0.01)
-                            ser2.write(bytes([48]))
+                            ser2.write(bytearray([48]))
                             time.sleep(0.01)
-                            # ser3.write(bytes([49]))
+                            # ser3.write(bytearray([49]))
                             # time.sleep(0.01)
-                            # ser4.write(bytes([49]))
+                            # ser4.write(bytearray([49]))
                             # time.sleep(0.01)
                             print("agent2 speech sequence")
                     if (b[0] == "display"):
@@ -210,42 +211,42 @@ while (1):
             elif (a[0] == "action.speech.stop"):
                 event = "Interrupted"
                 interrupted = True
-                ser1.write(bytes([50]))
+                ser1.write(bytearray([50]))
                 time.sleep(0.01)
-                ser2.write(bytes([50]))
+                ser2.write(bytearray([50]))
                 time.sleep(0.01)
-                ser3.write(bytes([48]))
+                ser3.write(bytearray([48]))
                 time.sleep(0.01)
-                ser4.write(bytes([48]))
+                ser4.write(bytearray([48]))
                 time.sleep(0.01)
-                # ser1.write(bytes([90]))
-                # ser1.write(bytes([140]))
-                # ser1.write(bytes([151]))
-                # ser2.write(bytes([51]))
-                # ser2.write(bytes([101]))
-                # ser2.write(bytes([151]))
-                # ser3.write(bytes([51]))
-                # ser3.write(bytes([101]))
-                # ser3.write(bytes([151]))
-                # ser4.write(bytes([51]))
-                # ser4.write(bytes([101]))
-                # ser4.write(bytes([151]))
+                # ser1.write(bytearray([90]))
+                # ser1.write(bytearray([140]))
+                # ser1.write(bytearray([151]))
+                # ser2.write(bytearray([51]))
+                # ser2.write(bytearray([101]))
+                # ser2.write(bytearray([151]))
+                # ser3.write(bytearray([51]))
+                # ser3.write(bytearray([101]))
+                # ser3.write(bytearray([151]))
+                # ser4.write(bytearray([51]))
+                # ser4.write(bytearray([101]))
+                # ser4.write(bytearray([151]))
                 print(event)
     except:
         pass
         # elif (event == "Interrupted" or event == "waiting3sec"):
     #	motorMovementRobot1 = 0
     #	motorMovementRobot2 = 0
-    #	ser1.write(bytes([0]))
+    #	ser1.write(bytearray([0]))
     # else:
     #	motorMovementRobot1 = 0
     #	motorMovementRobot2 = 0
-    #	ser1.write(bytes([0]))
+    #	ser1.write(bytearray([0]))
 
     # if motorMovementRobot1 == 1:
-    #	ser1.write(bytes([49]))
+    #	ser1.write(bytearray([49]))
     # else:
-    #	ser1.write(bytes([48]))
+    #	ser1.write(bytearray([48]))
 
     if (close):
         send("Send", "CLOSE\n")

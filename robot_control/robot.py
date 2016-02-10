@@ -105,8 +105,8 @@ class Robot(nengo.Network):
             self.rhythm = nengo.Ensemble(n_neurons, 1)
             nengo.Connection(self.sound, self.rhythm)
 
-            nengo.Connection(self.rhythm, self.left_error.input[[4]], transform=[[-1.]]) # TODO apply sub-unit transfrom
-            nengo.Connection(self.rhythm, self.right_error.input[[4]], transform=[[1.]])
+            nengo.Connection(self.rhythm, self.left_error.input[[0]], transform=[[-.5]]) # TODO apply sub-unit transfrom
+            nengo.Connection(self.rhythm, self.right_error.input[[0]], transform=[[.5]])
 
             # If silencing, inhibit rhythm
             nengo.Connection(self.bg.output[0], self.rhythm.neurons, transform=[[1]] * self.rhythm.n_neurons)
