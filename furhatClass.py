@@ -46,8 +46,10 @@ servo_to_com[
 servo_to_com[
     AlanRobot.key_with_label_in_container("right_servos", luke.servos)] = ser2
 
-# servo_to_com[AlanRobot.key_with_label_in_container("left_servos", leia.servos)] = ser3
-# servo_to_com[AlanRobot.key_with_label_in_container("right_servos", leia.servos)] = ser4
+servo_to_com[AlanRobot.key_with_label_in_container("left_servos",
+                                                   leia.servos)] = ser3
+servo_to_com[AlanRobot.key_with_label_in_container("right_servos",
+                                                   leia.servos)] = ser4
 
 luke_moving = True
 
@@ -155,7 +157,7 @@ interrupted = False
 print("oh my life -------------")
 time.sleep(10)  # <--
 luke.start_simulation()
-# leia.start_simulation()
+leia.start_simulation()
 
 while (1):
     time.sleep(0.1)
@@ -203,7 +205,7 @@ while (1):
             elif (a[0] == "action.speech.stop"):
                 event = "Interrupted"
                 interrupted = True
-
+                luke_moving = True
                 luke.silence()
 
                 ser3.write(bytearray([48]))
