@@ -111,8 +111,8 @@ class Robot(nengo.Network):
             nengo.Connection(self.rhythm, self.left_error.input[[2]], transform=[[-.3]])
             nengo.Connection(self.rhythm, self.right_error.input[[2]], transform=[[.3]])
 
-            nengo.Connection(self.rhythm, self.left_error.input[[4]], transform=[[-.8]])
-            nengo.Connection(self.rhythm, self.right_error.input[[4]], transform=[[.8]])
+            nengo.Connection(self.rhythm, self.left_error.input[[4]], transform=[[-1.]])
+            nengo.Connection(self.rhythm, self.right_error.input[[4]], transform=[[1.]])
 
             # If silencing, inhibit rhythm
             nengo.Connection(self.bg.output[0], self.rhythm.neurons, transform=[[1]] * self.rhythm.n_neurons)

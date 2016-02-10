@@ -9,7 +9,7 @@ from scipy.interpolate import interp1d
 import numpy as np
 
 servo_to_com = dict()
-index_to_range = {0: [51, 100], 1: [101, 150], 2: [151, 200]}
+index_to_range = {0: [101, 150], 1: [51, 100], 2: [151, 200]}
 nengo_radius = 1
 
 simulation_params_luke = {
@@ -53,15 +53,6 @@ servo_to_com[AlanRobot.key_with_label_in_container("right_servos",
 
 luke_moving = True
 
-luke_action = np.asarray([1., 0.])
-luke_direction = np.asarray([.7, .7])
-luke_silence_position = np.asarray([.3, .7, 1])
-
-leia_action = np.asarray([1., 0.])
-leia_direction = np.asarray([.7, .7])
-leia_silence_position = np.asarray([.3, .7, 1])
-
-
 def transmission_callback(servo, data):
     '''
     Callback function that sends the relevant data sequentially to the respective controlling Arduinos.
@@ -74,6 +65,9 @@ def transmission_callback(servo, data):
     '''
     global index_to_range, servo_to_com, nengo_radius, luke_moving, luke, leia
 
+    # applying a bias
+    data = data - np.asarray([.5,.3,0])
+
     if servo in luke.servos.dictionary and luke_moving or \
                             servo in leia.servos.dictionary and not luke_moving:
         # value clipping [-1, 1]
@@ -83,7 +77,7 @@ def transmission_callback(servo, data):
             interpolation = interp1d([-nengo_radius, nengo_radius], servo_range)
             com_link = servo_to_com[servo]
 
-            interpolated_output = int(interpolation(data))
+            interpolated_output = int(interpolation(data[index]))
 
             com_link.write(bytearray(
                 [interpolated_output]

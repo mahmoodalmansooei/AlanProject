@@ -5,7 +5,7 @@ import numpy as np
 
 
 class Servo(nengo.Node):
-    def __init__(self, container, size_in=None, label=None, sampling_period=100):
+    def __init__(self, container, size_in=None, label=None, sampling_period=50):
         """
         A motor is a type of node that sends live information back for
         processing.
