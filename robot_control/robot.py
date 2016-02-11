@@ -44,7 +44,7 @@ class Robot(nengo.Network):
             # Inputs
             self.action = ControlSignal(container=self.controls, size_out=2, label='action')
             self.direction = ControlSignal(container=self.controls, size_out=2, label='direction')
-            self.sound = nengo.Node(lambda t: np.sin(t))
+            self.sound = nengo.Node(lambda t: - np.sin(t) - np.cos(5*t))
             self.silence = ControlSignal(container=self.controls, size_out=3, label='silence')
 
             # Initialisation
