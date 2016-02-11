@@ -176,7 +176,7 @@ while (1):
                         event = agent
                         if (event == "agent1" and interrupted == False):
                             # TODO pass input into neural sim
-                            luke_moving = True
+                            luke_moving = True if np.random.rand()>.2 else False
                             ser3.write(bytearray([48]))
                             time.sleep(0.01)
                             ser4.write(bytearray([48]))
@@ -186,7 +186,7 @@ while (1):
                             print("agent1 speech sequence")
                         elif (event == "agent2" and interrupted == False):
                             # TODO pass input into neural sim
-                            luke_moving = False
+                            luke_moving = False if np.random.rand()>.2 else True
                             ser1.write(bytearray([48]))
                             time.sleep(0.01)
                             ser2.write(bytearray([48]))
