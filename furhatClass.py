@@ -26,10 +26,12 @@ simulation_params_leia = {
 
 # TODO - Run booting etc. in parallel
 luke = AlanRobot(run_time=86400,
-                 period=10.0, **simulation_params_luke)  # Run for 24 hours with default period
+                 period=10.0,
+                 **simulation_params_luke)  # Run for 24 hours with default period
 # luke = AlanRobot(run_time=15, period=10.0)  # Run for 24 hours with default period
 leia = AlanRobot(run_time=86400,
-                 period=10.0, **simulation_params_leia)  # Run for 24 hours with default period
+                 period=10.0,
+                 **simulation_params_leia)  # Run for 24 hours with default period
 
 usbPort1 = 4
 usbPort2 = 5
@@ -53,6 +55,7 @@ servo_to_com[AlanRobot.key_with_label_in_container("right_servos",
 
 luke_moving = True
 
+
 def transmission_callback(servo, data):
     '''
     Callback function that sends the relevant data sequentially to the respective controlling Arduinos.
@@ -66,7 +69,7 @@ def transmission_callback(servo, data):
     global index_to_range, servo_to_com, nengo_radius, luke_moving, luke, leia
 
     # applying a bias
-    data = data - np.asarray([.5,.3,0])
+    data = data - np.asarray([.5, .3, 0])
 
     if servo in luke.servos.dictionary and luke_moving or \
                             servo in leia.servos.dictionary and not luke_moving:
@@ -79,9 +82,10 @@ def transmission_callback(servo, data):
 
             interpolated_output = int(interpolation(data[index]))
 
-            com_link.write(bytearray(
-                [interpolated_output]
-            ))
+            if np.random.rand() > .1:
+                com_link.write(bytearray(
+                    [interpolated_output]
+                ))
 
 
 luke.servos.set_default_callback(transmission_callback)
@@ -199,7 +203,7 @@ while (1):
             elif (a[0] == "action.speech.stop"):
                 event = "Interrupted"
                 interrupted = True
-                luke_moving = True
+                luke_moving = True if np.random.rand() > .2 else False
                 luke.silence()
 
                 ser3.write(bytearray([48]))
