@@ -204,7 +204,7 @@ while (1):
                         leia_moving = False
                         luke.silence()
                         leia.idle()
-                    elif (event == "agent2")
+                    elif (event == "agent2"):
                         luke_moving = False
                         leia_moving = True
 
