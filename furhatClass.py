@@ -8,6 +8,68 @@ from robot_interface.alan_robot import AlanRobot
 from scipy.interpolate import interp1d
 import numpy as np
 
+# Step 1
+sock = socket.socket()
+ip = "127.0.0.1"
+port = 1932
+ticket = "myticket"
+sock.connect((ip, port))
+
+
+#
+
+def read(threadName):
+    a = sock.recv(1000)
+    # print(a)
+    if a == None:
+        return ("No event")
+    a = a.decode("utf-8")
+    b = a.splitlines()
+    for i in b:
+        if i == "CONNECTED":
+            print("Succesfully received, CONNECTED")
+    for i in b:
+        c = i.split()
+        if (len(c) > 0 and len(b) > 1):
+            if ((str(c[0]) == "EVENT" or str(c[0]) == "VENT" or str(
+                    c[0]) == "ENT") and (len(c) >= 3)):
+                e = []
+                d = b[1]
+                e.append(c[1])
+                e.append(d)
+                return (e)
+
+
+def send(threadName, sentence=""):
+    sock.send(bytearray(sentence))
+    print("Succesfully sent, ", sentence)
+
+
+# Step 2
+try:
+    thread.start_new_thread(send, ("Send",))
+    send("Send", "CONNECT myticket Python\n")
+except:
+    print ("Error: Could not start sending thread 1")
+time.sleep(1)
+#
+
+# Step 3
+try:
+    thread.start_new_thread(read, ("Receive",))
+    read("Receive")
+except:
+    print ("Error: Could not start receiving thread")
+#
+
+time.sleep(1)
+# Step 4
+send("Send",
+     "SUBSCRIBE action.speech action.speech.stop\n")  # sense.user.enter sense.user.leave action.speech action.speech.stop\n")
+
+interrupted = False
+
+
 servo_to_com = dict()
 index_to_range = {0: [101, 150], 1: [51, 100], 2: [151, 200]}
 nengo_radius = 1
@@ -89,68 +151,7 @@ def transmission_callback(servo, data):
 
 
 luke.servos.set_default_callback(transmission_callback)
-# leia.servos.set_default_callback(transmission_callback)
-
-# Step 1
-sock = socket.socket()
-ip = "127.0.0.1"
-port = 1932
-ticket = "myticket"
-sock.connect((ip, port))
-
-
-#
-
-def read(threadName):
-    a = sock.recv(1000)
-    # print(a)
-    if a == None:
-        return ("No event")
-    a = a.decode("utf-8")
-    b = a.splitlines()
-    for i in b:
-        if i == "CONNECTED":
-            print("Succesfully received, CONNECTED")
-    for i in b:
-        c = i.split()
-        if (len(c) > 0 and len(b) > 1):
-            if ((str(c[0]) == "EVENT" or str(c[0]) == "VENT" or str(
-                    c[0]) == "ENT") and (len(c) >= 3)):
-                e = []
-                d = b[1]
-                e.append(c[1])
-                e.append(d)
-                return (e)
-
-
-def send(threadName, sentence=""):
-    sock.send(bytearray(sentence))
-    print("Succesfully sent, ", sentence)
-
-
-# Step 2
-try:
-    thread.start_new_thread(send, ("Send",))
-    send("Send", "CONNECT myticket Python\n")
-except:
-    print ("Error: Could not start sending thread 1")
-time.sleep(1)
-#
-
-# Step 3
-try:
-    thread.start_new_thread(read, ("Receive",))
-    read("Receive")
-except:
-    print ("Error: Could not start receiving thread")
-#
-
-time.sleep(1)
-# Step 4
-send("Send",
-     "SUBSCRIBE action.speech action.speech.stop\n")  # sense.user.enter sense.user.leave action.speech action.speech.stop\n")
-
-interrupted = False
+leia.servos.set_default_callback(transmission_callback)
 
 print("oh my life -------------")
 time.sleep(10)  # <--
