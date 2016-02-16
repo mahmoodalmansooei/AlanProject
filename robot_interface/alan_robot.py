@@ -114,7 +114,7 @@ class AlanRobot(object):
             if k.label == label:
                 return k
 
-    def silence(self, position=np.asarray([.3, .7, 1])):
+    def silence(self, position=np.asarray([.4, .8, 1])):
         """
         Method that causes the robot to make a silencing gesture
         :param position:
@@ -150,8 +150,9 @@ class AlanRobot(object):
         direction = AlanRobot.key_with_label_in_container("direction",
                                                           self.controls)
 
-        # choose a random direction (either left or right)
-        self.controls.update(direction, np.asarray([1., 0.]))
+        # choose a random direction (left, right or both)
+        possible_direction = [np.asarray([1., 0.]), np.asarray([.7, .7]), np.asarray([-.7, .7])]
+        self.controls.update(direction, possible_direction[np.random.randint(0, len(possible_direction))])
 
         # retrieve control signal responsible for action selection
         action = AlanRobot.key_with_label_in_container("action",
@@ -159,4 +160,5 @@ class AlanRobot(object):
         self.controls.update(action, np.asarray([1., 0.]))
 
     def idle(self):
+        # TODO
         pass

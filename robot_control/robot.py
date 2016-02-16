@@ -50,8 +50,12 @@ class Robot(nengo.Network):
             self.direction = ControlSignal(container=self.controls, size_out=2, label='direction')
             self.sound = nengo.Node(lambda t: np.sin(t) - np.cos(5*t))
             self.silence = ControlSignal(container=self.controls, size_out=3, label='silence')
+            self.silence_ens = nengo.Ensemble(3 * n_neurons, 3)
+            nengo.Connection(self.silence, self.silence_ens, synapse=tau)
 
             self.zero = ControlSignal(container=self.controls, size_out=3, label="zero")
+            self.zero_ens = nengo.Ensemble(3 * n_neurons, 3)
+            nengo.Connection(self.zero, self.zero_ens, synapse=tau)
 
             # Initialisation
             self.controls.update(self.action, np.asarray([1., 0.]))
@@ -75,11 +79,11 @@ class Robot(nengo.Network):
             nengo.Connection(self.right_target_position.output, self.right_error.input[[0, 2, 4]])
             nengo.Connection(self.right_current_position.output, self.right_error.input[[1, 3, 5]])
 
-            nengo.Connection(self.silence, self.left_target_position.input)
-            nengo.Connection(self.silence, self.right_target_position.input)
+            nengo.Connection(self.silence_ens, self.left_target_position.input)
+            nengo.Connection(self.silence_ens, self.right_target_position.input)
 
-            nengo.Connection(self.zero, self.left_target_position.input)
-            nengo.Connection(self.zero, self.right_target_position.input)
+            nengo.Connection(self.zero_ens, self.left_error.input[[0, 2, 4]], transform=np.eye(3))
+            nengo.Connection(self.zero_ens, self.right_error.input[[0, 2, 4]], transform=np.eye(3))
 
             # Feedback
             left_error = self.left_error.add_output("error", error)
@@ -108,35 +112,29 @@ class Robot(nengo.Network):
             # The 2 actions are: silence and gesture
             # Gesture inhibits a target function (goes idle)
             # Silence inhibits sound and give a target position of its own
-            self.bg = nengo.networks.BasalGanglia(2, output_weight=-5)
+            self.bg = nengo.networks.BasalGanglia(2, output_weight=-3)
             nengo.Connection(self.action, self.bg.input)
 
             # Sound connections
             self.rhythm = nengo.Ensemble(n_neurons, 1)
             nengo.Connection(self.sound, self.rhythm, transform=[1/2.])
 
-            nengo.Connection(self.rhythm, self.left_error.input[[0]], transform=[[-1]])
-            nengo.Connection(self.rhythm, self.right_error.input[[0]], transform=[[1.]])
+            nengo.Connection(self.rhythm, self.left_target_position.input[[0]], transform=[[-1]])
+            nengo.Connection(self.rhythm, self.right_target_position.input[[0]], transform=[[1.]])
 
-            nengo.Connection(self.rhythm, self.left_error.input[[2]], transform=[[-1.]])
-            nengo.Connection(self.rhythm, self.right_error.input[[2]], transform=[[1.]])
+            nengo.Connection(self.rhythm, self.left_target_position.input[[1]], transform=[[-1.]])
+            nengo.Connection(self.rhythm, self.right_target_position.input[[1]], transform=[[1.]])
 
-            nengo.Connection(self.rhythm, self.left_error.input[[4]], transform=[[-1.]])
-            nengo.Connection(self.rhythm, self.right_error.input[[4]], transform=[[1.]])
+            nengo.Connection(self.rhythm, self.left_target_position.input[[2]], transform=[[-1.]])
+            nengo.Connection(self.rhythm, self.right_target_position.input[[2]], transform=[[1.]])
 
             # If silencing, inhibit rhythm
-            nengo.Connection(self.bg.output[0], self.rhythm.neurons, transform=[[3]] * self.rhythm.n_neurons)
-
+            nengo.Connection(self.bg.output[0], self.rhythm.neurons, transform=[[3]] * self.rhythm.n_neurons, synapse=tau)
+            # If silencing, also inhibit "zero"
+            nengo.Connection(self.bg.output[0], self.zero_ens.neurons, transform=[[1]] * self.silence_ens.n_neurons, synapse=tau)
             # When silencing, provide a target function (in degrees) for each of the the joints
             # Done. Provided from the "outside"
-
-            # When gesturing, inhibit the target function (will return to idling position)
-            for ensemble in self.left_target_position.all_ensembles:
-                nengo.Connection(self.bg.output[1], ensemble.neurons, transform=[[2]] * ensemble.n_neurons)
-
-            for ensemble in self.right_target_position.all_ensembles:
-                nengo.Connection(self.bg.output[1], ensemble.neurons, transform=[[2]] * ensemble.n_neurons)
-
+            nengo.Connection(self.bg.output[1], self.silence_ens.neurons, transform=[[1]] * self.silence_ens.n_neurons, synapse=tau)
             # Select an arm for silencing / gesturing
 
             self.left_dp = DotProduct()
