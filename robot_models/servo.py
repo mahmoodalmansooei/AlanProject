@@ -6,7 +6,7 @@ import numpy as np
 
 class Servo(nengo.Node):
     def __init__(self, container, size_in=None, label=None,
-                 sampling_period=700):
+                 sampling_period=15):
         """
         A motor is a type of node that sends live information back for
         processing.
@@ -24,11 +24,10 @@ class Servo(nengo.Node):
         """
         self.container = container
         self.dt = 0.001
-        self.delta = 0.05
+        self.delta = 0.00
         self.sampling_period = sampling_period * self.dt
         self.previous_time = -self.sampling_period
         self.container.add(self, [0] * size_in)
-        self.random_var = np.rand.randint(-300, 300)
         super(Servo, self).__init__(output=self.servo_output,
                                     size_in=1 if not size_in else size_in,
                                     label=label)
@@ -45,12 +44,11 @@ class Servo(nengo.Node):
         :param value: The current value of the motor node
         :type value: floats
         """
-        if time - self.previous_time >= self.sampling_period + self.random_var:
+        if time - self.previous_time >= self.sampling_period:
             update_table = np.abs(value - self.container[self]) >= self.delta
             self.previous_time = time
             if np.any(update_table):
                 delta_step_value = [
                     value[i] if update_table[i] else self.container[self][i] for
                     i in range(value.size)]
-                self.random_var = np.rand.randint(-300, 300)
                 self.container.update(self, value)
