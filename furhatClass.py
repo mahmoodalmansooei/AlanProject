@@ -115,7 +115,8 @@ servo_to_com[AlanRobot.key_with_label_in_container("left_servos",
 servo_to_com[AlanRobot.key_with_label_in_container("right_servos",
                                                    leia.servos)] = ser4
 
-luke_moving = True
+luke_moving = False
+leia_moving = False
 
 
 def transmission_callback(servo, data):
@@ -131,23 +132,19 @@ def transmission_callback(servo, data):
     global index_to_range, servo_to_com, nengo_radius, luke_moving, luke, leia
 
     # applying a bias
-    data = data - np.asarray([.5, .3, 0])
+    # data = data - np.asarray([.5, .3, 0])
+    # value clipping [-1, 1]
+    data = np.clip(data, -nengo_radius, nengo_radius)
+    for index in xrange(data.size):
+        servo_range = index_to_range[index]
+        interpolation = interp1d([-nengo_radius, nengo_radius], servo_range)
+        com_link = servo_to_com[servo]
 
-    if servo in luke.servos.dictionary and luke_moving or \
-                            servo in leia.servos.dictionary and not luke_moving:
-        # value clipping [-1, 1]
-        data = np.clip(data, -nengo_radius, nengo_radius)
-        for index in xrange(data.size):
-            servo_range = index_to_range[index]
-            interpolation = interp1d([-nengo_radius, nengo_radius], servo_range)
-            com_link = servo_to_com[servo]
+        interpolated_output = int(interpolation(data[index]))
 
-            interpolated_output = int(interpolation(data[index]))
-
-            if np.random.rand() > .1:
-                com_link.write(bytearray(
-                    [interpolated_output]
-                ))
+        com_link.write(bytearray(
+            [interpolated_output]
+        ))
 
 
 luke.servos.set_default_callback(transmission_callback)
@@ -176,22 +173,15 @@ while (1):
                         agent = b[1]
                         event = agent
                         if (event == "agent1" and interrupted == False):
-                            # TODO pass input into neural sim
-                            luke_moving = True if np.random.rand()>.2 else False
-                            ser3.write(bytearray([48]))
-                            time.sleep(0.01)
-                            ser4.write(bytearray([48]))
-                            time.sleep(0.01)
+                            luke_moving = True
+                            leia_moving = False
                             luke.gesture()
 
                             print("agent1 speech sequence")
                         elif (event == "agent2" and interrupted == False):
-                            # TODO pass input into neural sim
-                            luke_moving = False if np.random.rand()>.2 else True
-                            ser1.write(bytearray([48]))
-                            time.sleep(0.01)
-                            ser2.write(bytearray([48]))
-                            time.sleep(0.01)
+                            luke_moving = False
+                            leia_moving = True
+
                             leia.gesture()
                             print("agent2 speech sequence")
                     if (b[0] == "display"):
@@ -202,15 +192,13 @@ while (1):
                             interrupted = False
                             print(event)
             elif (a[0] == "action.speech.stop"):
+                # TODO some way of knowing which robot is talking?
                 event = "Interrupted"
                 interrupted = True
-                luke_moving = True if np.random.rand() > .2 else False
-                luke.silence()
+                luke_moving = True
+                leia_moving = False
 
-                ser3.write(bytearray([48]))
-                time.sleep(0.01)
-                ser4.write(bytearray([48]))
-                time.sleep(0.01)
+                luke.silence()
                 print(event)
     except:
         pass

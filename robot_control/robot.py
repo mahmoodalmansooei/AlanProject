@@ -42,19 +42,22 @@ class Robot(nengo.Network):
         self.servos = Container()
         self.controls = Container()
 
-        white_noise_process = WhiteNoise(Uniform(-1., 1.), scale=True)
+        # white_noise_process = WhiteNoise(Uniform(-1., 1.), scale=True)
         # white_noise_process.default_size_out = 6
         with self:
             # Inputs
             self.action = ControlSignal(container=self.controls, size_out=2, label='action')
             self.direction = ControlSignal(container=self.controls, size_out=2, label='direction')
-            self.sound = nengo.Node(white_noise_process)
+            self.sound = nengo.Node(lambda t: np.sin(t) - np.cos(5*t))
             self.silence = ControlSignal(container=self.controls, size_out=3, label='silence')
+
+            self.zero = ControlSignal(container=self.controls, size_out=3, label="zero")
 
             # Initialisation
             self.controls.update(self.action, np.asarray([1., 0.]))
             self.controls.update(self.direction, np.asarray([1., 0.]))
             self.controls.update(self.silence, np.asarray([.3, .7, 1]))
+            self.controls.update(self.zero, np.asarray([-.5, -.5, -.5]))
 
             # Hidden layer
             self.left_current_position = nengo.networks.EnsembleArray(n_neurons, 3)
@@ -75,6 +78,9 @@ class Robot(nengo.Network):
             nengo.Connection(self.silence, self.left_target_position.input)
             nengo.Connection(self.silence, self.right_target_position.input)
 
+            nengo.Connection(self.zero, self.left_target_position.input)
+            nengo.Connection(self.zero, self.right_target_position.input)
+
             # Feedback
             left_error = self.left_error.add_output("error", error)
             right_error = self.right_error.add_output("error", error)
@@ -82,8 +88,8 @@ class Robot(nengo.Network):
             nengo.Connection(left_error, self.left_current_position.input, synapse=tau)
             nengo.Connection(right_error, self.right_current_position.input, synapse=tau)
 
-            nengo.Connection(self.left_current_position.output, self.left_current_position.input, synapse=tau)
-            nengo.Connection(self.right_current_position.output, self.right_current_position.input, synapse=tau)
+            nengo.Connection(self.left_current_position.output, self.left_current_position.input, synapse=2 * tau)
+            nengo.Connection(self.right_current_position.output, self.right_current_position.input, synapse=2 * tau)
 
             # Output
             self.left_motors = nengo.Node(size_in=3)
@@ -107,7 +113,7 @@ class Robot(nengo.Network):
 
             # Sound connections
             self.rhythm = nengo.Ensemble(n_neurons, 1)
-            nengo.Connection(self.sound, self.rhythm)
+            nengo.Connection(self.sound, self.rhythm, transform=[1/2.])
 
             nengo.Connection(self.rhythm, self.left_error.input[[0]], transform=[[-1]])
             nengo.Connection(self.rhythm, self.right_error.input[[0]], transform=[[1.]])

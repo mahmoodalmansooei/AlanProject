@@ -157,3 +157,6 @@ class AlanRobot(object):
         action = AlanRobot.key_with_label_in_container("action",
                                                        self.controls)
         self.controls.update(action, np.asarray([1., 0.]))
+
+    def idle(self):
+        pass
