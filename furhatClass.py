@@ -115,8 +115,6 @@ servo_to_com[AlanRobot.key_with_label_in_container("left_servos",
 servo_to_com[AlanRobot.key_with_label_in_container("right_servos",
                                                    leia.servos)] = ser4
 
-luke_moving = False
-leia_moving = False
 
 
 def transmission_callback(servo, data):
@@ -129,10 +127,8 @@ def transmission_callback(servo, data):
     :param data: numpy.ndarray
     :return: None
     '''
-    global index_to_range, servo_to_com, nengo_radius, luke_moving, luke, leia
+    global index_to_range, servo_to_com, nengo_radius
 
-    # applying a bias
-    # data = data - np.asarray([.5, .3, 0])
     # value clipping [-1, 1]
     data = np.clip(data, -nengo_radius, nengo_radius)
     for index in xrange(data.size):
@@ -145,6 +141,9 @@ def transmission_callback(servo, data):
         com_link.write(bytearray(
             [interpolated_output]
         ))
+
+luke_moving = False
+leia_moving = False
 
 
 luke.servos.set_default_callback(transmission_callback)
@@ -176,6 +175,7 @@ while (1):
                             luke_moving = True
                             leia_moving = False
                             luke.gesture()
+                            leia.idle()
 
                             print("agent1 speech sequence")
                         elif (event == "agent2" and interrupted == False):
@@ -183,6 +183,7 @@ while (1):
                             leia_moving = True
 
                             leia.gesture()
+                            luke.idle()
                             print("agent2 speech sequence")
                     if (b[0] == "display"):
                         b[1] = b[1][1:-1]
@@ -192,13 +193,30 @@ while (1):
                             interrupted = False
                             print(event)
             elif (a[0] == "action.speech.stop"):
-                # TODO some way of knowing which robot is talking?
+                # TODO some way of knowing which robot is talking? Maybe like this
+                b = a[1].split(",")
+                if b[0] == "agent":
+                    b[1] = b[1][1:-1]
+                    agent = b[1]
+                    event = agent
+                    if (event == "agent1"):
+                        luke_moving = True
+                        leia_moving = False
+                        luke.silence()
+                        leia.idle()
+                    elif (event == "agent2")
+                        luke_moving = False
+                        leia_moving = True
+
+                        leia.silence()
+                        luke.idle()
+
                 event = "Interrupted"
                 interrupted = True
-                luke_moving = True
-                leia_moving = False
-
-                luke.silence()
+                # luke_moving = True
+                # leia_moving = False
+                #
+                # luke.silence()
                 print(event)
     except:
         pass

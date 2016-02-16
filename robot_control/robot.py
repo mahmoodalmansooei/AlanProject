@@ -46,7 +46,7 @@ class Robot(nengo.Network):
         # white_noise_process.default_size_out = 6
         with self:
             # Inputs
-            self.action = ControlSignal(container=self.controls, size_out=2, label='action')
+            self.action = ControlSignal(container=self.controls, size_out=3, label='action')
             self.direction = ControlSignal(container=self.controls, size_out=2, label='direction')
             self.sound = nengo.Node(lambda t: np.sin(t) - np.cos(5*t))
             self.silence = ControlSignal(container=self.controls, size_out=3, label='silence')
@@ -58,7 +58,7 @@ class Robot(nengo.Network):
             nengo.Connection(self.zero, self.zero_ens, synapse=tau)
 
             # Initialisation
-            self.controls.update(self.action, np.asarray([1., 0.]))
+            self.controls.update(self.action, np.asarray([1., 0., 0.]))
             self.controls.update(self.direction, np.asarray([1., 0.]))
             self.controls.update(self.silence, np.asarray([.3, .7, 1]))
             self.controls.update(self.zero, np.asarray([-.5, -.5, -.5]))
@@ -112,29 +112,39 @@ class Robot(nengo.Network):
             # The 2 actions are: silence and gesture
             # Gesture inhibits a target function (goes idle)
             # Silence inhibits sound and give a target position of its own
-            self.bg = nengo.networks.BasalGanglia(2, output_weight=-3)
+            self.bg = nengo.networks.BasalGanglia(3, output_weight=-3)
             nengo.Connection(self.action, self.bg.input)
+
+            self.action_thalamus = nengo.networks.Thalamus(3)
+            nengo.Connection(self.bg.output, self.action_thalamus.input, synapse=tau)
 
             # Sound connections
             self.rhythm = nengo.Ensemble(n_neurons, 1)
             nengo.Connection(self.sound, self.rhythm, transform=[1/2.])
 
-            nengo.Connection(self.rhythm, self.left_target_position.input[[0]], transform=[[-1]])
-            nengo.Connection(self.rhythm, self.right_target_position.input[[0]], transform=[[1.]])
+            nengo.Connection(self.rhythm, self.left_target_position.input[[0]], transform=[[-1]], synapse=tau)
+            nengo.Connection(self.rhythm, self.right_target_position.input[[0]], transform=[[1.]], synapse=tau)
 
-            nengo.Connection(self.rhythm, self.left_target_position.input[[1]], transform=[[-1.]])
-            nengo.Connection(self.rhythm, self.right_target_position.input[[1]], transform=[[1.]])
+            nengo.Connection(self.rhythm, self.left_target_position.input[[1]], transform=[[-1.]], synapse=tau)
+            nengo.Connection(self.rhythm, self.right_target_position.input[[1]], transform=[[1.]], synapse=tau)
 
-            nengo.Connection(self.rhythm, self.left_target_position.input[[2]], transform=[[-1.]])
-            nengo.Connection(self.rhythm, self.right_target_position.input[[2]], transform=[[1.]])
+            nengo.Connection(self.rhythm, self.left_target_position.input[[2]], transform=[[-1.]], synapse=tau)
+            nengo.Connection(self.rhythm, self.right_target_position.input[[2]], transform=[[1.]], synapse=tau)
 
             # If silencing, inhibit rhythm
-            nengo.Connection(self.bg.output[0], self.rhythm.neurons, transform=[[3]] * self.rhythm.n_neurons, synapse=tau)
+            nengo.Connection(self.action_thalamus.output[1], self.rhythm.neurons, transform=[[-2.]] * self.rhythm.n_neurons, synapse=tau)
             # If silencing, also inhibit "zero"
-            nengo.Connection(self.bg.output[0], self.zero_ens.neurons, transform=[[1]] * self.silence_ens.n_neurons, synapse=tau)
+            nengo.Connection(self.action_thalamus.output[1], self.zero_ens.neurons, transform=[[-2.]] * self.silence_ens.n_neurons, synapse=tau)
             # When silencing, provide a target function (in degrees) for each of the the joints
             # Done. Provided from the "outside"
-            nengo.Connection(self.bg.output[1], self.silence_ens.neurons, transform=[[1]] * self.silence_ens.n_neurons, synapse=tau)
+            nengo.Connection(self.action_thalamus.output[0], self.silence_ens.neurons, transform=[[-2.]] * self.silence_ens.n_neurons, synapse=tau)
+
+            # Idling inhibits silence and rhythm
+
+            nengo.Connection(self.action_thalamus.output[2], self.silence_ens.neurons, transform=[[-2.]] * self.silence_ens.n_neurons, synapse=tau)
+            nengo.Connection(self.action_thalamus.output[2], self.rhythm.neurons, transform=[[-2.]] * self.rhythm.n_neurons, synapse=tau)
+
+
             # Select an arm for silencing / gesturing
 
             self.left_dp = DotProduct()

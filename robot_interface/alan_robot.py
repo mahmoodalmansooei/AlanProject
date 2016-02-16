@@ -138,7 +138,7 @@ class AlanRobot(object):
         # retrieve control signal responsible for action selection
         action = AlanRobot.key_with_label_in_container("action",
                                                        self.controls)
-        self.controls.update(action, np.asarray([0., 1.]))
+        self.controls.update(action, np.asarray([0., 1., 0.]))
 
     def gesture(self):
         """
@@ -157,8 +157,14 @@ class AlanRobot(object):
         # retrieve control signal responsible for action selection
         action = AlanRobot.key_with_label_in_container("action",
                                                        self.controls)
-        self.controls.update(action, np.asarray([1., 0.]))
+        self.controls.update(action, np.asarray([1., 0., 0.]))
 
     def idle(self):
-        # TODO
-        pass
+        """
+        Method that causes the robot to idle
+        :return:
+        """
+         # retrieve control signal responsible for action selection
+        action = AlanRobot.key_with_label_in_container("action",
+                                                       self.controls)
+        self.controls.update(action, np.asarray([0., 0., 1.]))
