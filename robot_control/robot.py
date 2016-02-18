@@ -48,7 +48,7 @@ class Robot(nengo.Network):
             # Inputs
             self.action = ControlSignal(container=self.controls, size_out=3, label='action')
             self.direction = ControlSignal(container=self.controls, size_out=2, label='direction')
-            self.sound = nengo.Node(lambda t: np.sin(t) - np.cos(5*t))
+            self.sound = nengo.Node(lambda t: np.sin(1/2*t) - np.cos(2*t))
             self.silence = ControlSignal(container=self.controls, size_out=3, label='silence')
             self.silence_ens = nengo.Ensemble(3 * n_neurons, 3)
             nengo.Connection(self.silence, self.silence_ens, synapse=tau)
@@ -61,7 +61,7 @@ class Robot(nengo.Network):
             self.controls.update(self.action, np.asarray([1., 0., 0.]))
             self.controls.update(self.direction, np.asarray([1., 0.]))
             self.controls.update(self.silence, np.asarray([.3, .7, 1]))
-            self.controls.update(self.zero, np.asarray([-.5, -.5, -.5]))
+            self.controls.update(self.zero, np.asarray([-.7, -.5, -.6]))
 
             # Hidden layer
             self.left_current_position = nengo.networks.EnsembleArray(n_neurons, 3)
@@ -120,13 +120,13 @@ class Robot(nengo.Network):
 
             # Sound connections
             self.rhythm = nengo.Ensemble(n_neurons, 1)
-            nengo.Connection(self.sound, self.rhythm, transform=[1/2.])
+            nengo.Connection(self.sound, self.rhythm, transform=[.8])
 
             nengo.Connection(self.rhythm, self.left_target_position.input[[0]], transform=[[-1]], synapse=tau)
             nengo.Connection(self.rhythm, self.right_target_position.input[[0]], transform=[[1.]], synapse=tau)
 
-            nengo.Connection(self.rhythm, self.left_target_position.input[[1]], transform=[[-1.]], synapse=tau)
-            nengo.Connection(self.rhythm, self.right_target_position.input[[1]], transform=[[1.]], synapse=tau)
+            nengo.Connection(self.rhythm, self.left_target_position.input[[1]], transform=[[1.]], synapse=tau)
+            nengo.Connection(self.rhythm, self.right_target_position.input[[1]], transform=[[-1.]], synapse=tau)
 
             nengo.Connection(self.rhythm, self.left_target_position.input[[2]], transform=[[-1.]], synapse=tau)
             nengo.Connection(self.rhythm, self.right_target_position.input[[2]], transform=[[1.]], synapse=tau)

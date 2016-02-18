@@ -15,7 +15,15 @@ port = 1932
 ticket = "myticket"
 sock.connect((ip, port))
 
+usbPort1 = 4
+usbPort2 = 5
+usbPort3 = 6
+usbPort4 = 7
 
+ser1 = serial.Serial(usbPort1, 57600)
+ser2 = serial.Serial(usbPort2, 57600)
+ser3 = serial.Serial(usbPort3, 57600)
+ser4 = serial.Serial(usbPort4, 57600)
 #
 
 def read(threadName):
@@ -76,7 +84,7 @@ print (static_notification)
 print (len(static_notification) * '=')
 
 servo_to_com = dict()
-index_to_range = {0: [101, 150], 1: [51, 100], 2: [151, 200]}
+index_to_range = {0: [101, 150], 1: [51, 100], 2: [151, 155]}
 nengo_radius = 1
 
 simulation_params_luke = {
@@ -100,15 +108,6 @@ leia = AlanRobot(run_time=86400,
                  period=10.0,
                  **simulation_params_leia)  # Run for 24 hours with default period
 
-usbPort1 = 4
-usbPort2 = 5
-usbPort3 = 6
-usbPort4 = 7
-
-ser1 = serial.Serial(usbPort1, 57600)
-ser2 = serial.Serial(usbPort2, 57600)
-ser3 = serial.Serial(usbPort3, 57600)
-ser4 = serial.Serial(usbPort4, 57600)
 
 servo_to_com[
     AlanRobot.key_with_label_in_container("left_servos", luke.servos)] = ser1
@@ -191,30 +190,30 @@ while (1):
                             luke.idle()
                             print("agent2 speech sequence")
                     if (b[0] == "display"):
+                        # print b
                         b[1] = b[1][1:-1]
                         if (b[1] == " hm what was i saying" or b[
-                            1] == " oh what were you saying?"):
+                            1] == " oh what were you saying?") or "where were we" in b[1].lower():
                             event = "Interrupt completed"
                             interrupted = False
+                            luke.idle()
                             print(event)
             elif (a[0] == "action.speech.stop"):
                 # TODO some way of knowing which robot is talking? Maybe like this
-                b = a[1].split(",")
-                if b[0] == "agent":
-                    b[1] = b[1][1:-1]
-                    agent = b[1]
-                    event = agent
-                    if (event == "agent1"):
-                        luke_moving = True
-                        leia_moving = False
-                        luke.silence()
-                        leia.idle()
-                    elif (event == "agent2"):
-                        luke_moving = False
-                        leia_moving = True
-
-                        leia.silence()
-                        luke.idle()
+                # b = a[1].split(",")
+                # if b[0] == "agent":
+                #     b[1] = b[1][1:-1]
+                #     agent = b[1]
+                #     event = agent
+                #     if (event == "agent1"):
+                #         luke_moving = True
+                #         leia_moving = False
+                #         luke.silence()
+                #         leia.idle()
+                #     elif (event == "agent2"):
+                # luke_moving = False
+                # leia_moving = True
+                #
 
                 event = "Interrupted"
                 interrupted = True
@@ -222,9 +221,14 @@ while (1):
                 # leia_moving = False
                 #
                 # luke.silence()
+
+
+                leia.idle()
+                luke.silence()
                 print(event)
-    except:
-        pass
+                print "something"
+    except Exception as e:
+        print e
 
     if (close):
         send("Send", "CLOSE\n")
