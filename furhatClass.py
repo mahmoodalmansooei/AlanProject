@@ -69,6 +69,11 @@ send("Send",
 
 interrupted = False
 
+static_notification = "===This step is done. You can proceed with follow-up steps==="
+
+print (len(static_notification) * '=')
+print (static_notification)
+print (len(static_notification) * '=')
 
 servo_to_com = dict()
 index_to_range = {0: [101, 150], 1: [51, 100], 2: [151, 200]}
